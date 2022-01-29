@@ -6,7 +6,7 @@ class UserDAO {
      *  For this ticket, you will need to implement the following methods:
      * 
      * - getUser 
-     * - addUser  
+     * - addUser   
      * - loginUser  
      * - logoutUser
      * - deleteUser  
@@ -20,7 +20,7 @@ class UserDAO {
 	 * @returns {Object | null} Returns either a single user or nothing
 	 */
 	static async getUser(email) {
-		return await User.findOne({ email }, { _id: 0 });
+		return await User.findOne({ email });
 	}
 
 	/**
@@ -33,10 +33,6 @@ class UserDAO {
 			await User.create(userInfo);
 			return { success: true };
 		} catch (error) {
-			console.log(
-				'🚀 ~ file: users.dao.js ~ line 36 ~ UserDAO ~ addUser ~ error',
-				error
-			);
 			if (
 				String(error).startsWith(
 					'MongoServerError: E11000 duplicate key error'
@@ -109,17 +105,14 @@ class UserDAO {
 
 	/**
 	 * Removes a user from the `sessions` and `users` collections
-	 * @param {string} email - The email of the user to delete
+	 * @param {string} id - The id of the user to delete
 	 * @returns {DAOResponse} Returns either a "success" or an "error" Object
 	 */
-	static async deleteUser(email) {
+	static async deleteUser(id) {
 		try {
-			await User.deleteOne({ email });
-			await Session.deleteOne({ user_id: email });
-			if (
-				!(await this.getUser(email)) &&
-				!(await this.getUserSession(email))
-			) {
+			await User.findByIdAndDelete(id);
+			await Session.findByIdAndDelete(id);
+			if (!(await this.getUser(id)) && !(await this.getUserSession(id))) {
 				return { success: true };
 			} else {
 				console.error(`Deletion unsuccessful`);
@@ -130,86 +123,160 @@ class UserDAO {
 			return { error };
 		}
 	}
-	/**-----------------------
-	 *  add frient request to `friends` collections
-	 *	@param {RequestInfo} requestInfo
-	 *	@returns {DAOResponse} return either success or an error object
-	 *------------------------**/
-	static async addFriendRequest(requestInfo) {
-		try {
-			await Friend.create({
-				requester: requestInfo.requester,
-				recipiant: requestInfo.recipiant,
-				request_id: requestInfo.request_id,
-				status: 1,
-			});
-
-			return { success: true };
-		} catch (error) {
-			console.log(`Error occured while creating friend request ${error}`);
-			return { error };
-		}
-	}
 
 	/**-----------------------
-	 *  get pending friend requests from `friends` collection
-	 *  @param {number} id // the id of the recipiant user
-	 *	@returns {DAOResponse} return either success or an error object
+	 *  add user_id to `followings` field in his document
+	 *  @param {number} user_id // the id of user you want to follow
+	 *  @param {number} id_to_follow // the id of user you want to follow
+	 *  @returns {DAOResponse} // return either success or an error object
 	 *------------------------**/
-	static async getPendingFriendRequests(id) {
+
+	static async Follow(user_id, id_to_follow) {
 		try {
-			return await Friend.aggregate([
-				{ $match: { recipiant: id, status: 1 } },
+			await User.updateOne(
 				{
-					$lookup: {
-						from: 'users',
-						let: { requester: '$requester' },
-						pipeline: [
-							{
-								$match: {
-									$expr: { $eq: ['$user_id', '$$requester'] },
-								},
-							},
-							{
-								$project: {
-									_id: 0,
-									name: 1,
-									picture: 1,
-								},
-							},
-						],
-						as: 'friend_requests',
-					},
+					_id: user_id,
+					followings: { $nin: [id_to_follow, null] },
 				},
-				{ $project: { _id: 0, friend_requests: 1 } },
-			]);
+				{ $push: { followings: id_to_follow } }
+			);
+			return { success: true };
 		} catch (error) {
-			console.log(`Error occured while get pending request ${error}`);
+			console.error(`Error occured while follow someone ${error}`);
 			return { error };
 		}
 	}
 
-	/**-----------------------
-	 *  add frient request to `friends` collection
-	 *	@param {number} request_id
-	 *	@returns {DAOResponse} return either success or an error object
-	 *------------------------**/
-	static async approveFriendRequest(request_id) {
+	/**
+	 *  add user_id to `followings` field in his document
+	 *  @param {number} user_id // the id of user you want to unfollow
+	 *  @param {number} id_to_unfollow
+	 *  @returns {DAOResponse} // return either success or an error object
+	 **/
+	static async Unfollow(user_id, id_to_unfollow) {
 		try {
-			const request = await Friend.findOneAndUpdate(
-				{ request_id },
-				{ $set: { status: 3 } }
-			);
-			await User.findOneAndUpdate(
-				{ user_id: request.recipiant },
-				{ $push: { friends: request.requester } }
+			await User.updateOne(
+				{
+					_id: user_id,
+					followings: { $in: [id_to_unfollow, null] },
+				},
+				{ $pull: { followings: id_to_unfollow } }
 			);
 			return { success: true };
 		} catch (error) {
-			console.log(`Error occured while creating friend request ${error}`);
+			console.error(`Error occured while follow someone ${error}`);
 			return { error };
 		}
 	}
+
+	/**
+	 *  add user_id to `followings` field in his document
+	 *  @param {string} user_id // the id of user that has followers
+	 *  @returns {DAOResponse} // return either success or an error object
+	 **/
+	static async getFollowers(user_id) {
+		try {
+			return await User.find(
+				{
+					_id: { $ne: user_id },
+					followings: { $in: [user_id] },
+				},
+				{ name: 1, picture: 1, _id: 1, gender: 1 }
+			);
+		} catch (error) {
+			console.error(`Error occured while follow someone ${error}`);
+			return { error };
+		}
+	}
+
+	/**
+	 *  add user_id to `followings` field in his document
+	 *  @param {string} user_id // the id of visitor user
+	 *  @param {string} user_to_visit // the id of user you want to visit
+	 *  @returns {DAOResponse} // return either success or an error object
+	 **/
+	static async addVisitor(user_id, user_to_visit) {
+		try {
+			await User.updateOne(
+				{ _id: user_id, visits: { $nin: [user_to_visit] } },
+				{ $push: { visits: user_to_visit } }
+			);
+			return { success: true };
+		} catch (error) {
+			console.error(`Error occured while add visitor ${error}`);
+			return { error };
+		}
+	}
+	static async getUsers() {
+		return await User.find();
+	}
+	// /**-----------------------
+	//  *  add frient request to `friends` collections
+	//  *	@param {RequestInfo} requestInfo
+	//  *	@returns {DAOResponse} return either success or an error object
+	//  *------------------------**/
+	// static async addFriendRequest(requestInfo) {
+	// 	try {
+	// 		await Friend.create({
+	// 			requester: requestInfo.requester,
+	// 			recipiant: requestInfo.recipiant,
+	// 			request_id: requestInfo.request_id,
+	// 			status: 1,
+	// 		});
+
+	// 		return { success: true };
+	// 	} catch (error) {
+	// 		console.log(`Error occured while creating friend request ${error}`);
+	// 		return { error };
+	// 	}
+	// }
+
+	// /**-----------------------
+	//  *  get pending friend requests from `friends` collection
+	//  *  @param {string} id // the id of the recipiant user
+	//  *	@returns {DAOResponse} return either success or an error object
+	//  *------------------------**/
+	// static async getPendingFriendRequests(id) {
+	// 	try {
+	// 		return await Friend.find(
+	// 			{ recipiant: id },
+	// 			{ requester: 1, _id: 0 }
+	// 		).populate({
+	// 			path: 'requester',
+	// 			select: {
+	// 				name: 1,
+	// 				_id: 0,
+	// 				picture: 1,
+	// 				gender: 1,
+	// 			},
+	// 		});
+	// 	} catch (error) {
+	// 		console.log(`Error occured while get pending request ${error}`);
+	// 		return { error };
+	// 	}
+	// }
+
+	// /**-----------------------
+	//  *  add frient request to `friends` collection
+	//  *	@param {number} request_id
+	//  *	@returns {DAOResponse} return either success or an error object
+	//  *------------------------**/
+	// static async approveFriendRequest(request_id) {
+	// 	try {
+	// 		const request = await Friend.findOneAndUpdate(
+	// 			{ request_id },
+	// 			{ $set: { status: 3 } }
+	// 		);
+	// 		await User.findOneAndUpdate(
+	// 			{ user_id: request.recipiant },
+	// 			{ $push: { friends: request.requester } }
+	// 		);
+	// 		return { success: true };
+	// 	} catch (error) {
+	// 		console.log(`Error occured while creating friend request ${error}`);
+	// 		return { error };
+	// 	}
+	// }
 }
 
 /**======================

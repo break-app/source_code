@@ -2,11 +2,6 @@ const mongoose = require('mongoose');
 
 const usersSchema = new mongoose.Schema(
 	{
-		user_id: {
-			type: Number,
-			required: [true, 'this filed is required'],
-			unique: [true, 'this field is unique'],
-		},
 		name: {
 			first: {
 				type: String,
@@ -44,7 +39,7 @@ const usersSchema = new mongoose.Schema(
 			enum: ['male', 'female', 'other'],
 			required: [true, 'this field is required'],
 		},
-		wealth: {
+		wallet: {
 			golds: {
 				type: Number,
 				default: 0,
@@ -62,8 +57,8 @@ const usersSchema = new mongoose.Schema(
 		auth_token: {
 			type: String,
 		},
-		groups: [{ type: mongoose.Schema.Types.Number, ref: 'Group' }],
-		followings: [{ type: mongoose.Schema.Types.Number, ref: 'User' }],
+		groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
+		followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 		rating: { type: Number, default: 0 },
 		gives: {
 			global: {
@@ -75,7 +70,13 @@ const usersSchema = new mongoose.Schema(
 				default: 0,
 			},
 		},
-		friends: [{ type: mongoose.Schema.Types.Number, ref: 'User' }],
+		visits: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'User',
+			},
+		],
+		// friends: [{ type: mongoose.Schema.Types.Number, ref: 'User' }],
 		features: [
 			// gifs | animations | frames | effects
 			{
@@ -88,33 +89,33 @@ const usersSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
-const friendsSchema = new mongoose.Schema(
-	{
-		requester: {
-			type: mongoose.Schema.Types.Number,
-			ref: 'User',
-		},
-		recipiant: {
-			type: mongoose.Schema.Types.Number,
-			ref: 'User',
-		},
-		status: {
-			type: Number,
-			enums: [
-				1, //'pending',
-				2, //'rejected'
-				3, //'friends'
-			],
-			default: 0,
-		},
-		request_id: {
-			type: Number,
-			required: [true, 'this field is required'],
-			unique: true,
-		},
-	},
-	{ timestamps: true }
-);
+// const friendsSchema = new mongoose.Schema(
+// 	{
+// 		requester: {
+// 			type: mongoose.Schema.Types.ObjectId,
+// 			ref: 'User',
+// 		},
+// 		recipiant: {
+// 			type: mongoose.Schema.Types.ObjectId,
+// 			ref: 'User',
+// 		},
+// 		status: {
+// 			type: Number,
+// 			enums: [
+// 				1, //'pending',
+// 				2, //'rejected'
+// 				3, //'friends'
+// 			],
+// 			default: 0,
+// 		},
+// 		request_id: {
+// 			type: Number,
+// 			required: [true, 'this field is required'],
+// 			unique: true,
+// 		},
+// 	},
+// 	{ timestamps: true }
+// );
 const groupsSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -145,8 +146,8 @@ const categorySchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', usersSchema);
-const Friend = mongoose.model('Friend', friendsSchema);
+// const Friend = mongoose.model('Friend', friendsSchema);
 const Group = mongoose.model('Group', groupsSchema);
 const Category = mongoose.model('Category', categorySchema);
 
-module.exports = { User, Friend, Group, Category };
+module.exports = { User, Group, Category };
