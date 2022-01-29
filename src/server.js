@@ -14,7 +14,7 @@ app.use(cors());
 process.env.NODE_ENV !== 'prod' && app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(expressValidator());
+// app.use(expressValidator());
 
 /**======================
  *  ?Hanle Validation Errors
