@@ -1,12 +1,24 @@
-const { body } = require('express-validator/check');
+const { check } = require('express-validator');
 
 exports.validate = (method) => {
     switch (method) {
         case 'createRoom': {
             return [
-                body('room_name', "room_name doesn't exist")
-                    .exists()
-                    .isString(),
+                check('room_name')
+                    .trim()
+                    .notEmpty()
+                    .withMessage('REQUIRED')
+                    .bail()
+                    .isLength({ min: 3, max: 15 })
+                    .withMessage('NUMBER_MIN_3_MAX_15')
+                    .isString()
+                    .withMessage('must be string'),
+                check('room_id')
+                    .notEmpty()
+                    .withMessage('REQUIRED')
+                    .bail()
+                    .isString()
+                    .withMessage('must be string'),
             ];
         }
     }

@@ -1,4 +1,5 @@
 const errorHandler = (err, req, res, next) => {
+    console.log('err', err);
     let error = { ...err };
     error.message = err.message;
 
@@ -15,6 +16,15 @@ const errorHandler = (err, req, res, next) => {
         const fields = Object.keys(err.keyValue);
         error = {
             message: fields.forEach((f) => `this ${f} is alrady in use`),
+            statusCode: 400,
+        };
+    }
+
+    // mongoose validation error
+    if (err.name === 'ValidationError') {
+        const message = Object.values(err.errors).map((val) => val.message);
+        error = {
+            message,
             statusCode: 400,
         };
     }
