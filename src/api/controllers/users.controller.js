@@ -9,45 +9,45 @@ const jwt = require('jsonwebtoken');
 const hashPassword = async (password) => await bcrypt.hash(password, 10);
 
 class User {
-	constructor({ name, age, avatar, email, password, gender, id } = {}) {
-		this.name = name;
-		this.age = age;
-		this.avatar = avatar;
-		this.email = email;
-		this.password = password;
-		this.gender = gender;
-		this.id = id;
-	}
-	toJson() {
-		return {
-			name: this.name,
-			age: this.age,
-			avatar: this.avatar,
-			email: this.email,
-			gender: this.gender,
-			id: this.id,
-		};
-	}
-	async comparePassword(plainText) {
-		return await bcrypt.compare(plainText, this.password);
-	}
-	encoded() {
-		return jwt.sign(
-			{
-				exp: Math.floor(Date.now() / 1000) + 60 * 60 * 4,
-				...this.toJson(),
-			},
-			process.env.SECRET_KEY
-		);
-	}
-	static async decoded(userJwt) {
-		return jwt.verify(userJwt, process.env.SECRET_KEY, (error, res) => {
-			if (error) {
-				return { error };
-			}
-			return new User(res);
-		});
-	}
+    constructor({ name, age, avatar, email, password, gender, id } = {}) {
+        this.name = name;
+        this.age = age;
+        this.avatar = avatar;
+        this.email = email;
+        this.password = password;
+        this.gender = gender;
+        this.id = id;
+    }
+    toJson() {
+        return {
+            name: this.name,
+            age: this.age,
+            avatar: this.avatar,
+            email: this.email,
+            gender: this.gender,
+            id: this.id,
+        };
+    }
+    async comparePassword(plainText) {
+        return await bcrypt.compare(plainText, this.password);
+    }
+    encoded() {
+        return jwt.sign(
+            {
+                exp: Math.floor(Date.now() / 1000) + 60 * 60 * 4,
+                ...this.toJson(),
+            },
+            process.env.SECRET_KEY
+        );
+    }
+    static async decoded(userJwt) {
+        return jwt.verify(userJwt, process.env.SECRET_KEY, (error, res) => {
+            if (error) {
+                return { error };
+            }
+            return new User(res);
+        });
+    }
 }
 
 class UserController {
@@ -233,37 +233,27 @@ class UserController {
         }
     }
 
-<<<<<<< HEAD
-    static async get(req, res) {
-        const users = await UserDAO.getUsers();
-        res.json(users);
+    static async buyProduct(req, res, next) {
+        try {
+            const { id } = req.user;
+            const { product, quantity } = req.body;
+            const info = {
+                buyer: id,
+                product,
+                quantity,
+            };
+            const buyResult = await UserDAO.buyProduct(info);
+            res.status(200).json({
+                result: buyResult,
+            });
+        } catch (error) {
+            next(error);
+        }
     }
+
     // static async getPendingFriendRequests(req, res) {
     // 	try {
     // 		const userObj = req.user;
-=======
-	static async buyProduct(req, res, next) {
-		try {
-			const { id } = req.user;
-			const { product, quantity } = req.body;
-			const info = {
-				buyer: id,
-				product,
-				quantity,
-			};
-			const buyResult = await UserDAO.buyProduct(info);
-			res.status(200).json({
-				result: buyResult,
-			});
-		} catch (error) {
-			next(error);
-		}
-	}
-
-	// static async getPendingFriendRequests(req, res) {
-	// 	try {
-	// 		const userObj = req.user;
->>>>>>> c3712c2e5377290998468cd249f86c6b68581300
 
     // 		const { id } = userObj;
     // 		const requestsResults = await UserDAO.getPendingFriendRequests(id);
