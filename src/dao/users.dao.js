@@ -227,6 +227,9 @@ class UserDAO {
 					$push: {
 						products: { product, quantity },
 					},
+					$inc: {
+						'wallet.golds': -totalPrice,
+					},
 				}
 			);
 			return user;
@@ -234,73 +237,6 @@ class UserDAO {
 			throw error;
 		}
 	}
-	// /**-----------------------
-	//  *  add frient request to `friends` collections
-	//  *	@param {RequestInfo} requestInfo
-	//  *	@returns {DAOResponse} return either success or an error object
-	//  *------------------------**/
-	// static async addFriendRequest(requestInfo) {
-	// 	try {
-	// 		await Friend.create({
-	// 			requester: requestInfo.requester,
-	// 			recipiant: requestInfo.recipiant,
-	// 			request_id: requestInfo.request_id,
-	// 			status: 1,
-	// 		});
-
-	// 		return { success: true };
-	// 	} catch (error) {
-	// 		console.log(`Error occured while creating friend request ${error}`);
-	// 		return { error };
-	// 	}
-	// }
-
-	// /**-----------------------
-	//  *  get pending friend requests from `friends` collection
-	//  *  @param {string} id // the id of the recipiant user
-	//  *	@returns {DAOResponse} return either success or an error object
-	//  *------------------------**/
-	// static async getPendingFriendRequests(id) {
-	// 	try {
-	// 		return await Friend.find(
-	// 			{ recipiant: id },
-	// 			{ requester: 1, _id: 0 }
-	// 		).populate({
-	// 			path: 'requester',
-	// 			select: {
-	// 				name: 1,
-	// 				_id: 0,
-	// 				picture: 1,
-	// 				gender: 1,
-	// 			},
-	// 		});
-	// 	} catch (error) {
-	// 		console.log(`Error occured while get pending request ${error}`);
-	// 		return { error };
-	// 	}
-	// }
-
-	// /**-----------------------
-	//  *  add frient request to `friends` collection
-	//  *	@param {number} request_id
-	//  *	@returns {DAOResponse} return either success or an error object
-	//  *------------------------**/
-	// static async approveFriendRequest(request_id) {
-	// 	try {
-	// 		const request = await Friend.findOneAndUpdate(
-	// 			{ request_id },
-	// 			{ $set: { status: 3 } }
-	// 		);
-	// 		await User.findOneAndUpdate(
-	// 			{ user_id: request.recipiant },
-	// 			{ $push: { friends: request.requester } }
-	// 		);
-	// 		return { success: true };
-	// 	} catch (error) {
-	// 		console.log(`Error occured while creating friend request ${error}`);
-	// 		return { error };
-	// 	}
-	// }
 }
 
 /**======================
