@@ -48,7 +48,7 @@ const usersSchema = new mongoose.Schema(
 		wallet: {
 			golds: {
 				type: Number,
-				default: 0,
+				default: 6000,
 			},
 			beans: {
 				type: Number,
