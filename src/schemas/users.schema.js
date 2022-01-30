@@ -16,9 +16,15 @@ const usersSchema = new mongoose.Schema(
 			type: Number,
 			required: [true, 'this field is required'],
 		},
-		picture: {
+		role: {
 			type: String,
-			default: 'default image src',
+			enum: ['user', 'admin'],
+			required: true,
+			default: 'user',
+		},
+		avatar: {
+			type: String,
+			default: 'default avatar src',
 		},
 		phone: {
 			type: String,
@@ -76,11 +82,13 @@ const usersSchema = new mongoose.Schema(
 				ref: 'User',
 			},
 		],
-		// friends: [{ type: mongoose.Schema.Types.Number, ref: 'User' }],
-		features: [
+		products: [
 			// gifs | animations | frames | effects
 			{
-				type: mongoose.Schema.Types.Number,
+				product: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: 'Store',
+				},
 				quantity: {
 					type: Number,
 				},

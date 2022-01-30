@@ -1,6 +1,7 @@
 const { User, Friend } = require('../schemas/users.schema');
 const Session = require('../schemas/sessions.schema');
-
+const Store = require('../schemas/store.schema');
+const ObjectId = require('mongoose').Types.ObjectId;
 class UserDAO {
 	/**-----------------------
      *  For this ticket, you will need to implement the following methods:
@@ -207,8 +208,31 @@ class UserDAO {
 			return { error };
 		}
 	}
-	static async getUsers() {
-		return await User.find();
+
+	static async buyProduct(info) {
+		try {
+			let { buyer, product, quantity } = info;
+			const productObj = await Store.findById(product, {
+				_id: 0,
+				price: 1,
+			});
+			let totalPrice = productObj.price * quantity;
+			const user = await User.updateOne(
+				{
+					_id: buyer,
+					'wallet.golds': { $gte: totalPrice },
+					'products.product': { $nin: [product] },
+				},
+				{
+					$push: {
+						products: { product, quantity },
+					},
+				}
+			);
+			return user;
+		} catch (error) {
+			throw error;
+		}
 	}
 	// /**-----------------------
 	//  *  add frient request to `friends` collections

@@ -12,7 +12,7 @@ router.route('/follow').post(auth, UserController.FollowSomeOne);
 router.route('/unfollow').post(auth, UserController.UnfollowSomeOne);
 router.route('/get_followers').get(auth, UserController.getFollowers);
 router.route('/add_visit').post(auth, UserController.addVisitor);
-router.route('/').get(UserController.get);
+router.route('/buy_product').get(auth, UserController.buyProduct);
 // router.route('/addFriendRequest').post(auth, UserController.addFriendRequest);
 // router
 // 	.route('/getFriendRequests')
