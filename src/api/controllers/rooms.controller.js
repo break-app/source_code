@@ -1,17 +1,17 @@
 const createHttpError = require('http-errors');
 const RoomDAO = require('../../dao/rooms.dao');
 class RoomControllers {
-    static async createRoom(req, res, next) {
-        try {
-            const roomResult = await RoomDAO.createRoom(req.body);
-            res.status(201).json({
-                success: true,
-                result: 'roomResult',
-            });
-        } catch (err) {
-            next(err);
-        }
-    }
+	static async createRoom(req, res, next) {
+		try {
+			const roomResult = await RoomDAO.createRoom(req.body);
+			res.status(201).json({
+				success: true,
+				result: roomResult,
+			});
+		} catch (err) {
+			next(err);
+		}
+	}
 }
 
 // exports.createRoom = asyncHandler(async (req, res, next) => {

@@ -5,11 +5,11 @@ const { validate } = require('../validationLayers/room.layers');
 const router = require('express').Router();
 
 router
-    .route('/')
-    .post(
-        validate('createRoom'),
-        catchValidationError,
-        RoomControllers.createRoom
-    );
+	.route('/')
+	.post(
+		validate('createRoom'),
+		catchValidationError,
+		RoomControllers.createRoom
+	);
 
 module.exports = router;

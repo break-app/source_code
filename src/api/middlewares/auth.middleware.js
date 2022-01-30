@@ -12,7 +12,6 @@ const auth = async (req, res, next) => {
 				return;
 			}
 			req.user = new User(result).toJson();
-			console.log('result', req.user);
 			next();
 		});
 	} catch (error) {

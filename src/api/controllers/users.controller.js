@@ -9,10 +9,10 @@ const jwt = require('jsonwebtoken');
 const hashPassword = async (password) => await bcrypt.hash(password, 10);
 
 class User {
-	constructor({ name, age, picture, email, password, gender, id } = {}) {
+	constructor({ name, age, avatar, email, password, gender, id } = {}) {
 		this.name = name;
 		this.age = age;
-		this.picture = picture;
+		this.avatar = avatar;
 		this.email = email;
 		this.password = password;
 		this.gender = gender;
@@ -22,7 +22,7 @@ class User {
 		return {
 			name: this.name,
 			age: this.age,
-			picture: this.picture,
+			avatar: this.avatar,
 			email: this.email,
 			gender: this.gender,
 			id: this.id,
@@ -233,10 +233,24 @@ class UserController {
 		}
 	}
 
-	static async get(req, res) {
-		const users = await UserDAO.getUsers();
-		res.json(users);
+	static async buyProduct(req, res, next) {
+		try {
+			const { id } = req.user;
+			const { product, quantity } = req.body;
+			const info = {
+				buyer: id,
+				product,
+				quantity,
+			};
+			const buyResult = await UserDAO.buyProduct(info);
+			res.status(200).json({
+				result: buyResult,
+			});
+		} catch (error) {
+			next(error);
+		}
 	}
+
 	// static async getPendingFriendRequests(req, res) {
 	// 	try {
 	// 		const userObj = req.user;
