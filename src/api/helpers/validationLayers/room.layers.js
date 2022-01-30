@@ -13,13 +13,9 @@ exports.validate = (method) => {
                     .withMessage('NUMBER_MIN_3_MAX_15')
                     .isString()
                     .withMessage('must be string'),
-                check('room_id')
-                    .notEmpty()
-                    .withMessage('REQUIRED')
-                    .bail()
-                    .isString()
-                    .withMessage('must be string'),
             ];
         }
+        default:
+            return;
     }
 };

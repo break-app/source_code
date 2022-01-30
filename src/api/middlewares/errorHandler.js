@@ -14,8 +14,9 @@ const errorHandler = (err, req, res, next) => {
     // mongo dublicate Field
     if (err.code === 11000) {
         const fields = Object.keys(err.keyValue);
+        const message = fields.map((f) => `this ${f} is alrady in use`);
         error = {
-            message: fields.forEach((f) => `this ${f} is alrady in use`),
+            message: message[0],
             statusCode: 400,
         };
     }

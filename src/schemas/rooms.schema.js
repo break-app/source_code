@@ -14,6 +14,10 @@ const roomSchema = new mongoose.Schema({
         unique: [true, 'the name must be uniqe'],
         required: [true, 'you must provide a name for the room'],
     },
+    announcement: {
+        type: String,
+        default: 'Welcome to my room',
+    },
     room_BG: {
         type: String,
     },
