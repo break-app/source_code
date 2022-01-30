@@ -230,34 +230,6 @@ class UserDAO {
 				}
 			);
 			return user;
-			console.log(product);
-			let cond = await User.aggregate([
-				{ $match: { _id: ObjectId(buyer) } },
-				{ $project: { _id: 0, wallet: 1 } },
-				{
-					$lookup: {
-						from: 'stores',
-						let: { wallet: '$wallet' },
-						pipeline: [
-							{
-								$match: {
-									_id: ObjectId(product),
-									$expr: {
-										$lte: ['$price', '$$wallet.golds'],
-									},
-								},
-							},
-						],
-						as: 'product',
-					},
-				},
-			]).project({ _id: 0, product: 1 });
-			return cond;
-			// await User.updateOne(
-			// 	{ _id: buyer, 'products.product': { $nin: [product] } },
-			// 	{ $push: { products: { product, quantity } } }
-			// );
-			return { success: true };
 		} catch (error) {
 			throw error;
 		}
