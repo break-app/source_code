@@ -49,10 +49,12 @@ const usersSchema = new mongoose.Schema(
 			golds: {
 				type: Number,
 				default: 6000,
+				min: [0, "your golds can't be less than 0"],
 			},
 			beans: {
 				type: Number,
 				default: 0,
+				min: [0, "your beans can't be less than 0"],
 			},
 		},
 		level: {
@@ -83,9 +85,8 @@ const usersSchema = new mongoose.Schema(
 			},
 		],
 		products: [
-			// gifs | animations | frames | effects
 			{
-				product: {
+				id: {
 					type: mongoose.Schema.Types.ObjectId,
 					ref: 'Store',
 				},
@@ -97,33 +98,7 @@ const usersSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
-// const friendsSchema = new mongoose.Schema(
-// 	{
-// 		requester: {
-// 			type: mongoose.Schema.Types.ObjectId,
-// 			ref: 'User',
-// 		},
-// 		recipiant: {
-// 			type: mongoose.Schema.Types.ObjectId,
-// 			ref: 'User',
-// 		},
-// 		status: {
-// 			type: Number,
-// 			enums: [
-// 				1, //'pending',
-// 				2, //'rejected'
-// 				3, //'friends'
-// 			],
-// 			default: 0,
-// 		},
-// 		request_id: {
-// 			type: Number,
-// 			required: [true, 'this field is required'],
-// 			unique: true,
-// 		},
-// 	},
-// 	{ timestamps: true }
-// );
+
 const groupsSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -154,7 +129,6 @@ const categorySchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', usersSchema);
-// const Friend = mongoose.model('Friend', friendsSchema);
 const Group = mongoose.model('Group', groupsSchema);
 const Category = mongoose.model('Category', categorySchema);
 

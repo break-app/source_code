@@ -1,7 +1,8 @@
-const { User, Friend } = require('../schemas/users.schema');
+const { User } = require('../schemas/users.schema');
 const Session = require('../schemas/sessions.schema');
-const Store = require('../schemas/store.schema');
+const { Store } = require('../schemas/store.schema');
 const ObjectId = require('mongoose').Types.ObjectId;
+const Settings = require('../schemas/settings.schema');
 class UserDAO {
 	/**-----------------------
      *  For this ticket, you will need to implement the following methods:
@@ -209,30 +210,99 @@ class UserDAO {
 		}
 	}
 
+	/**
+	 *  buy product.. either (push) new product or update it
+	 *  @param {object} info // the informations of buying process
+	 *  @returns {object} // return result of the query
+	 **/
 	static async buyProduct(info) {
 		try {
 			let { buyer, product, quantity } = info;
-			const productObj = await Store.findById(product, {
-				_id: 0,
+			const productDB = await Store.findById(product, {
 				price: 1,
+				_id: 0,
 			});
-			let totalPrice = productObj.price * quantity;
-			const user = await User.updateOne(
+			let totalPrice = productDB.price * quantity;
+
+			// if product already exist in products array
+			let saleResult = await User.updateOne(
 				{
-					_id: buyer,
+					_id: ObjectId(buyer),
 					'wallet.golds': { $gte: totalPrice },
-					'products.product': { $nin: [product] },
+					'products.id': ObjectId(product),
 				},
 				{
-					$push: {
-						products: { product, quantity },
-					},
 					$inc: {
+						'products.$.quantity': quantity,
 						'wallet.golds': -totalPrice,
 					},
 				}
 			);
-			return user;
+
+			// if product doesn't exist in products array
+			if (!saleResult.modifiedCount) {
+				saleResult = await User.updateOne(
+					{
+						_id: ObjectId(buyer),
+						'products.id': { $ne: product },
+					},
+					{
+						$push: {
+							products: { id: product, quantity },
+						},
+						$inc: {
+							'wallet.golds': -totalPrice,
+						},
+					}
+				);
+			}
+
+			return saleResult;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	/**
+	 *  buy product.. either (push) new product or update it
+	 *  @param {object} gift_info // the informations of sending gifts process
+	 *  @returns {object} // return result of the query
+	 **/
+	static async sendGifts(gift_info) {
+		try {
+			const { gift_id, gift_qty, reciever, sender } = gift_info;
+			const gift_value = await Store.findById(gift_id);
+			const settings = await Settings.findOne(
+				{},
+				{ beans_golds: 1, _id: 0 }
+			);
+			let sendGiftResult = await User.updateOne(
+				{
+					_id: ObjectId(sender),
+					'products.id': ObjectId(gift_id),
+					'products.$.quantity': { $gte: gift_qty },
+				},
+				{
+					$inc: {
+						'products.$.quantity': -gift_qty,
+					},
+				}
+			);
+
+			if (sendGiftResult.modifiedCount) {
+				sendGiftResult = await User.updateOne(
+					{ _id: ObjectId(reciever) },
+					{
+						$inc: {
+							'wallet.beans':
+								(gift_value.price / settings.beans_golds) *
+								gift_qty,
+						},
+					}
+				);
+			}
+
+			return sendGiftResult;
 		} catch (error) {
 			throw error;
 		}
