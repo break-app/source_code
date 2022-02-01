@@ -51,25 +51,9 @@ class User {
 }
 
 class UserController {
-	static async register(req, res) {
+	static async register(req, res, next) {
 		try {
 			let userFromBody = req.body;
-			let errors = {};
-
-			if (
-				(userFromBody && userFromBody.name?.first.length < 3) ||
-				userFromBody.name?.last.length < 3
-			) {
-				errors.name = 'you must specify at least three characters';
-			}
-			if (userFromBody && userFromBody.password.length < 8) {
-				errors.password = 'your password must be at least 8 characters';
-			}
-			if (Object.keys(errors).length > 0) {
-				res.status(400).json(errors);
-				return;
-			}
-
 			const userInfo = {
 				...userFromBody,
 				password: await hashPassword(userFromBody.password),
@@ -78,29 +62,18 @@ class UserController {
 					last: userFromBody.last,
 				},
 			};
-			const insertResult = await UserDAO.addUser(userInfo);
-			if (!insertResult.success) {
-				errors.email = insertResult.error;
-			}
-
-			const userFromDB = await UserDAO.getUser(userFromBody.email);
-
-			if (!userFromDB) {
-				errors.general = 'Internal error, please try again later.';
-			}
-			if (Object.keys(errors).length > 0) {
-				res.status(400).json(errors);
-				return;
-			}
-
-			const user = new User(userFromDB);
-
+			const registerResult = await UserDAO.addUser(userInfo);
 			res.status(201).json({
-				auth_token: user.encoded(),
-				info: user.toJson(),
+				resutl: {
+					name: `${registerResult.name.first} ${registerResult.name.last}`,
+					email: registerResult.email,
+					avatar: registerResult.avatar,
+					golds: registerResult.wallet.golds,
+				},
 			});
 		} catch (error) {
-			res.status(500).json({ error });
+			next(error);
+			// res.status(500).json({ error });
 		}
 	}
 	static async login(req, res) {
@@ -264,6 +237,34 @@ class UserController {
 		} catch (error) {
 			next(error);
 		}
+	}
+
+	static sendGift(req, res, next) {
+		new Promise(async (resolve, reject) => {
+			try {
+				const sendResult = await UserDAO.sendGifts({
+					...req.body,
+					sender: req.user.id,
+				});
+				if (!sendResult.modifiedCount) {
+					reject(
+						res.status(400).json({
+							success: false,
+							msg: 'something went wrong, please try again later',
+						})
+					);
+					return;
+				}
+				resolve(
+					res.status(200).json({
+						success: true,
+						msg: 'your gift has been sent successfully',
+					})
+				);
+			} catch (error) {
+				reject(next(error));
+			}
+		});
 	}
 }
 

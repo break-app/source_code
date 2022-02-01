@@ -6,15 +6,24 @@ const usersSchema = new mongoose.Schema(
 			first: {
 				type: String,
 				required: [true, 'this field is required'],
+				minlength: [
+					2,
+					'your first name must be more than one character',
+				],
 			},
 			last: {
 				type: String,
 				required: [true, 'this filed is required'],
+				minlength: [
+					2,
+					'your last name must be more than one character',
+				],
 			},
 		},
 		age: {
 			type: Number,
 			required: [true, 'this field is required'],
+			min: [18, 'you must be older than 18 years'],
 		},
 		role: {
 			type: String,
@@ -39,6 +48,7 @@ const usersSchema = new mongoose.Schema(
 		password: {
 			type: String,
 			required: [true, 'this filed is required'],
+			minlength: [8, 'password cannot less than 8 characters'],
 		},
 		gender: {
 			type: String,
@@ -59,12 +69,10 @@ const usersSchema = new mongoose.Schema(
 		},
 		level: {
 			type: Number,
-			default: 0,
+			default: 1,
+			min: [1, 'level cannot be less than 1'],
 		},
 
-		auth_token: {
-			type: String,
-		},
 		groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
 		followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 		rating: { type: Number, default: 0 },
@@ -92,6 +100,7 @@ const usersSchema = new mongoose.Schema(
 				},
 				quantity: {
 					type: Number,
+					min: [1, 'quantity cannot be less than 0'],
 				},
 			},
 		],

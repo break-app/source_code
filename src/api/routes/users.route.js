@@ -1,10 +1,14 @@
 const { Router } = require('express');
 
 const { UserController } = require('../controllers/users.controller');
+const validate = require('../helpers/validationLayers/user.layer');
 const auth = require('../middlewares/auth.middleware');
+const { catchValidationError } = require('../middlewares/validationError');
 const router = Router();
 
-router.route('/register').post(UserController.register);
+router
+	.route('/register')
+	.post(validate('addUser'), catchValidationError, UserController.register);
 router.route('/login').post(UserController.login);
 router.route('/delete/:id').delete(UserController.delete);
 router.route('/logout').post(auth, UserController.logout);
@@ -13,8 +17,6 @@ router.route('/unfollow').post(auth, UserController.UnfollowSomeOne);
 router.route('/get_followers').get(auth, UserController.getFollowers);
 router.route('/add_visit').post(auth, UserController.addVisitor);
 router.route('/buy_product').post(auth, UserController.buyProduct);
-// router.route('/addFriendRequest').post(auth, UserController.addFriendRequest);
-// router
-// 	.route('/getFriendRequests')
-// 	.get(auth, UserController.getPendingFriendRequests);
+router.route('/send_gift').post(auth, UserController.sendGift);
+
 module.exports = router;

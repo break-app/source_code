@@ -22,29 +22,28 @@ class UserDAO {
 	 * @returns {Object | null} Returns either a single user or nothing
 	 */
 	static async getUser(email) {
-		return await User.findOne({ email });
+		return new Promise(async (resolve, reject) => {
+			try {
+				resolve(await User.findOne({ email }));
+			} catch (error) {
+				reject(error);
+			}
+		});
 	}
 
 	/**
 	 * Adds a user to the `users` collection
 	 * @param {UserInfo} userInfo - The information of the user to add
-	 * @returns {DAOResponse} Returns either a "success" or an "error" Object
 	 */
 	static async addUser(userInfo) {
-		try {
-			await User.create(userInfo);
-			return { success: true };
-		} catch (error) {
-			if (
-				String(error).startsWith(
-					'MongoServerError: E11000 duplicate key error'
-				)
-			) {
-				return { error: 'A user with the given email already exists.' };
+		return new Promise(async (resolve, reject) => {
+			try {
+				resolve(await User.create(userInfo));
+			} catch (error) {
+				reject(error);
+				// throw error;
 			}
-			console.error(`Error occurred while adding new user, ${error}.`);
-			return { error };
-		}
+		});
 	}
 
 	/**
@@ -215,97 +214,130 @@ class UserDAO {
 	 *  @param {object} info // the informations of buying process
 	 *  @returns {object} // return result of the query
 	 **/
-	static async buyProduct(info) {
-		try {
-			let { buyer, product, quantity } = info;
-			const productDB = await Store.findById(product, {
-				price: 1,
-				_id: 0,
-			});
-			let totalPrice = productDB.price * quantity;
-
-			// if product already exist in products array
-			let saleResult = await User.updateOne(
-				{
-					_id: ObjectId(buyer),
-					'wallet.golds': { $gte: totalPrice },
-					'products.id': ObjectId(product),
-				},
-				{
-					$inc: {
-						'products.$.quantity': quantity,
-						'wallet.golds': -totalPrice,
-					},
-				}
-			);
-
-			// if product doesn't exist in products array
-			if (!saleResult.modifiedCount) {
-				saleResult = await User.updateOne(
+	static buyProduct(info) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				let { buyer, product, quantity } = info;
+				const productDB = await Store.findById(product, {
+					price: 1,
+					_id: 0,
+				});
+				let totalPrice = productDB.price * quantity;
+				console.log(totalPrice);
+				// if product already exist in products array
+				let saleResult = await User.updateOne(
 					{
 						_id: ObjectId(buyer),
-						'products.id': { $ne: product },
+						'wallet.golds': { $gte: totalPrice },
+						'products.id': ObjectId(product),
 					},
 					{
-						$push: {
-							products: { id: product, quantity },
-						},
 						$inc: {
+							'products.$.quantity': quantity,
 							'wallet.golds': -totalPrice,
 						},
 					}
 				);
-			}
 
-			return saleResult;
-		} catch (error) {
-			throw error;
-		}
+				// if product doesn't exist in products array
+				if (!saleResult.modifiedCount) {
+					saleResult = await User.updateOne(
+						{
+							_id: ObjectId(buyer),
+							'wallet.golds': { $gte: totalPrice },
+							'products.id': { $ne: product },
+						},
+						{
+							$push: {
+								products: { id: product, quantity },
+							},
+							$inc: {
+								'wallet.golds': -totalPrice,
+							},
+						}
+					);
+				}
+				resolve(saleResult);
+				// return saleResult;
+			} catch (error) {
+				reject(error);
+				// throw error;
+			}
+		});
 	}
 
 	/**
 	 *  buy product.. either (push) new product or update it
 	 *  @param {object} gift_info // the informations of sending gifts process
-	 *  @returns {object} // return result of the query
 	 **/
-	static async sendGifts(gift_info) {
-		try {
-			const { gift_id, gift_qty, reciever, sender } = gift_info;
-			const gift_value = await Store.findById(gift_id);
-			const settings = await Settings.findOne(
-				{},
-				{ beans_golds: 1, _id: 0 }
-			);
-			let sendGiftResult = await User.updateOne(
-				{
-					_id: ObjectId(sender),
-					'products.id': ObjectId(gift_id),
-					'products.$.quantity': { $gte: gift_qty },
-				},
-				{
-					$inc: {
-						'products.$.quantity': -gift_qty,
-					},
-				}
-			);
+	static sendGifts(gift_info) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const { gift_id, gift_qty, reciever, sender } = gift_info;
 
-			if (sendGiftResult.modifiedCount) {
-				sendGiftResult = await User.updateOne(
-					{ _id: ObjectId(reciever) },
+				const [gift_value, settings] = await Promise.all([
+					Store.findById(gift_id, { _id: 0, price: 1 }),
+					Settings.findOne({}, { beans_golds: 1, _id: 0 }),
+				]);
+
+				// if the user has this gift and quantity allow to send this gift,
+				// reduce the his product quantity by 'quantity of gift'
+				let sendGiftResult = await User.updateOne(
+					{
+						_id: ObjectId(sender),
+						products: {
+							$elemMatch: {
+								id: ObjectId(gift_id),
+								quantity: { $gte: gift_qty },
+							},
+						},
+					},
 					{
 						$inc: {
-							'wallet.beans':
-								(gift_value.price / settings.beans_golds) *
-								gift_qty,
+							'products.$.quantity': -gift_qty,
 						},
 					}
 				);
-			}
 
-			return sendGiftResult;
-		} catch (error) {
-			throw error;
-		}
+				// if user has 0 of this product
+				if (!sendGiftResult.modifiedCount) {
+					reject(
+						new Error(
+							'your product quantity is less than gift quantity'
+						)
+					);
+					return;
+				}
+
+				// if the gift quantity was reduced from the sender,
+				// then increase the 'beans' of the reciever
+				if (sendGiftResult.modifiedCount) {
+					sendGiftResult = await User.updateOne(
+						{ _id: ObjectId(reciever) },
+						{
+							$inc: {
+								'wallet.beans':
+									(gift_value.price / settings.beans_golds) *
+									gift_qty,
+							},
+						}
+					);
+
+					// if gift wasn't sent to receiver
+					if (!sendGiftResult.modifiedCount) {
+						reject(
+							new Error(
+								'error occured while sending gift, please do not worry about your gift we will resend it later.'
+							)
+						);
+						return;
+					}
+				}
+				resolve(sendGiftResult);
+			} catch (error) {
+				reject(error);
+			}
+		});
 	}
 }
 
@@ -314,10 +346,11 @@ class UserDAO {
  *  @typedef UserInfo
  *  @property { object } name
  *  @property { number } age
- *  @property { string } picture
+ *  @property { string } avatar
  *  @property { string } email
  *  @property { string } password
  *  @property { string } gender
+ *  @property { string } phone
  *========================**/
 
 /**-----------------------

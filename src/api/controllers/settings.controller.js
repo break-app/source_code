@@ -1,6 +1,6 @@
 const SettingsDAO = require('../../dao/settings.dao');
 class SettingsController {
-	static async createSettings(req, res, next) {
+	static async CreateSettings(req, res, next) {
 		try {
 			const createResult = await SettingsDAO.createSettings(req.body);
 			res.json({ result: createResult });
