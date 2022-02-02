@@ -224,13 +224,13 @@ class UserDAO {
 					_id: 0,
 				});
 				let totalPrice = productDB.price * quantity;
-				console.log(totalPrice);
+
 				// if product already exist in products array
 				let saleResult = await User.updateOne(
 					{
-						_id: ObjectId(buyer),
+						_id: buyer,
 						'wallet.golds': { $gte: totalPrice },
-						'products.id': ObjectId(product),
+						'products.id': product,
 					},
 					{
 						$inc: {
@@ -244,7 +244,7 @@ class UserDAO {
 				if (!saleResult.modifiedCount) {
 					saleResult = await User.updateOne(
 						{
-							_id: ObjectId(buyer),
+							_id: buyer,
 							'wallet.golds': { $gte: totalPrice },
 							'products.id': { $ne: product },
 						},
@@ -259,10 +259,8 @@ class UserDAO {
 					);
 				}
 				resolve(saleResult);
-				// return saleResult;
 			} catch (error) {
 				reject(error);
-				// throw error;
 			}
 		});
 	}
@@ -285,10 +283,10 @@ class UserDAO {
 				// reduce the his product quantity by 'quantity of gift'
 				let sendGiftResult = await User.updateOne(
 					{
-						_id: ObjectId(sender),
+						_id: sender,
 						products: {
 							$elemMatch: {
-								id: ObjectId(gift_id),
+								id: gift_id,
 								quantity: { $gte: gift_qty },
 							},
 						},
@@ -314,7 +312,7 @@ class UserDAO {
 				// then increase the 'beans' of the reciever
 				if (sendGiftResult.modifiedCount) {
 					sendGiftResult = await User.updateOne(
-						{ _id: ObjectId(reciever) },
+						{ _id: reciever },
 						{
 							$inc: {
 								'wallet.beans':

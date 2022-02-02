@@ -110,25 +110,28 @@ const usersSchema = new mongoose.Schema(
 			},
 		],
 	},
-	{ timestamps: true }
+	{ timestamps: true, _id: false }
 );
-const groupsSchema = new mongoose.Schema({
-	_id: {
-		type: mongoose.Schema.Types.String,
-		required: [true, 'this field is required'],
-		unique: true,
-		index: true,
+const groupsSchema = new mongoose.Schema(
+	{
+		_id: {
+			type: mongoose.Schema.Types.String,
+			required: [true, 'this field is required'],
+			unique: true,
+			index: true,
+		},
+		name: {
+			type: String,
+			required: [true, 'this field is required'],
+		},
+		avatar: {
+			type: String,
+			default: 'group picture',
+		},
+		description: String,
 	},
-	name: {
-		type: String,
-		required: [true, 'this field is required'],
-	},
-	avatar: {
-		type: String,
-		default: 'group picture',
-	},
-	description: String,
-});
+	{ timestamps: true, _id: false }
+);
 
 const User = mongoose.model('User', usersSchema);
 const Group = mongoose.model('Group', groupsSchema);
