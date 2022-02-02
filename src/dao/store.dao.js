@@ -1,3 +1,4 @@
+const idGenerator = require('../api/helpers/idGenerator');
 const { Store, ProductCategory } = require('../schemas/store.schema');
 
 class StoreDAO {
@@ -6,7 +7,7 @@ class StoreDAO {
 	 **/
 	static async addProduct(productInfo) {
 		try {
-			return await Store.create(productInfo);
+			return await Store.create({ ...productInfo, _id: idGenerator() });
 		} catch (error) {
 			throw error;
 		}
@@ -17,7 +18,10 @@ class StoreDAO {
 	 **/
 	static async addCategory(categoryInfo) {
 		try {
-			return await ProductCategory.create(categoryInfo);
+			return await ProductCategory.create({
+				...categoryInfo,
+				_id: idGenerator(),
+			});
 		} catch (error) {
 			throw error;
 		}

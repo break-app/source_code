@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 
 const usersSchema = new mongoose.Schema(
 	{
+		_id: {
+			type: mongoose.Schema.Types.String,
+			required: [true, 'document must has an id'],
+			index: true,
+			unique: [true, 'id must be unique'],
+		},
 		name: {
 			first: {
 				type: String,
@@ -72,9 +78,8 @@ const usersSchema = new mongoose.Schema(
 			default: 1,
 			min: [1, 'level cannot be less than 1'],
 		},
-
-		groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
-		followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+		groups: [{ type: mongoose.Schema.Types.String, ref: 'Group' }],
+		followings: [{ type: mongoose.Schema.Types.String, ref: 'User' }],
 		rating: { type: Number, default: 0 },
 		gives: {
 			global: {
@@ -88,14 +93,14 @@ const usersSchema = new mongoose.Schema(
 		},
 		visits: [
 			{
-				type: mongoose.Schema.Types.ObjectId,
+				type: mongoose.Schema.Types.String,
 				ref: 'User',
 			},
 		],
 		products: [
 			{
 				id: {
-					type: mongoose.Schema.Types.ObjectId,
+					type: mongoose.Schema.Types.String,
 					ref: 'Store',
 				},
 				quantity: {
@@ -107,38 +112,25 @@ const usersSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
-
 const groupsSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: [true, 'this field is required'],
-	},
-	group_id: {
-		type: Number,
+	_id: {
+		type: mongoose.Schema.Types.String,
 		required: [true, 'this field is required'],
 		unique: true,
+		index: true,
 	},
-	picture: {
-		type: String,
-		default: 'group picture',
-	},
-	description: String,
-	category: {
-		type: mongoose.Schema.Types.Number,
-		ref: 'Category',
-	},
-});
-
-const categorySchema = new mongoose.Schema({
 	name: {
 		type: String,
 		required: [true, 'this field is required'],
+	},
+	avatar: {
+		type: String,
+		default: 'group picture',
 	},
 	description: String,
 });
 
 const User = mongoose.model('User', usersSchema);
 const Group = mongoose.model('Group', groupsSchema);
-const Category = mongoose.model('Category', categorySchema);
 
-module.exports = { User, Group, Category };
+module.exports = { User, Group };

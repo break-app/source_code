@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 const productCategorySchema = new mongoose.Schema({
+	_id: {
+		type: mongoose.Schema.Types.String,
+		required: [true, 'document must have an id'],
+		unique: [true, 'id must be unique'],
+		index: true,
+	},
 	name: {
 		type: String,
 		required: true,
@@ -11,6 +17,12 @@ const productCategorySchema = new mongoose.Schema({
 	},
 });
 const storeSchema = new mongoose.Schema({
+	_id: {
+		type: mongoose.Schema.Types.String,
+		required: [true, 'document must have an id'],
+		unique: [true, 'id must be unique'],
+		index: true,
+	},
 	name: {
 		type: String,
 		required: [true, 'this field is required'],
@@ -25,7 +37,7 @@ const storeSchema = new mongoose.Schema({
 		required: [true, 'this field is required'],
 	},
 	category: {
-		type: mongoose.Schema.Types.ObjectId,
+		type: mongoose.Schema.Types.String,
 		ref: 'ProductCategory',
 		required: true,
 	},

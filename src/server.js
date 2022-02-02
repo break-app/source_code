@@ -30,4 +30,11 @@ app.use('/api/v1/settings', settings);
  *========================**/
 app.use(errorHandler);
 
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+	console.log(`Error: ${err?.message}`);
+	// close the server & exit process
+	server.close(() => process.exit(1));
+});
+
 module.exports = app;

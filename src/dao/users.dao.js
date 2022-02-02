@@ -3,6 +3,7 @@ const Session = require('../schemas/sessions.schema');
 const { Store } = require('../schemas/store.schema');
 const ObjectId = require('mongoose').Types.ObjectId;
 const Settings = require('../schemas/settings.schema');
+const idGenerator = require('../api/helpers/idGenerator');
 class UserDAO {
 	/**-----------------------
      *  For this ticket, you will need to implement the following methods:
@@ -35,10 +36,10 @@ class UserDAO {
 	 * Adds a user to the `users` collection
 	 * @param {UserInfo} userInfo - The information of the user to add
 	 */
-	static async addUser(userInfo) {
+	static addUser(userInfo) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				resolve(await User.create(userInfo));
+				resolve(await User.create({ ...userInfo, _id: idGenerator() }));
 			} catch (error) {
 				reject(error);
 				// throw error;
