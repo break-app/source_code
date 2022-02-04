@@ -4,7 +4,13 @@ const settingsSchema = new mongoose.Schema({
 	beans_golds: {
 		type: Number,
 		required: [true, 'there is no equation between golds and beans'],
-		default: 4,
+	},
+	level_reqs: {
+		// level requirements
+		spends: {
+			type: Number,
+			required: [true, 'this field is required'],
+		},
 	},
 });
 

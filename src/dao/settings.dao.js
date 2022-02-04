@@ -1,13 +1,11 @@
 const Settings = require('../schemas/settings.schema');
-const { ObjectId } = require('mongoose');
 class SettingsDAO {
-	static async createSettings(data) {
+	static createSettings(data) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				resolve(await Settings.create(data));
 			} catch (error) {
 				reject(error);
-				// throw error;
 			}
 		});
 	}
@@ -30,14 +28,12 @@ class SettingsDAO {
 	/**
 	 * @param {string} settings_id | the id of settings must get back
 	 **/
-	static async GetSettings() {
+	static GetSettings() {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const settings = await Settings.findOne();
-				// return settings;
 				resolve(settings);
 			} catch (error) {
-				// throw error;
 				reject(error);
 			}
 		});

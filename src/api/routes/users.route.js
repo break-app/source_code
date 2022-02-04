@@ -18,5 +18,6 @@ router.route('/get_followers').get(auth, UserController.getFollowers);
 router.route('/add_visit').post(auth, UserController.addVisitor);
 router.route('/buy_product').post(auth, UserController.buyProduct);
 router.route('/send_gift').post(auth, UserController.sendGift);
+router.route('/convert_currence').post(auth, UserController.convertCurrence);
 
 module.exports = router;

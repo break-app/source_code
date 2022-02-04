@@ -5,8 +5,6 @@ const usersSchema = new mongoose.Schema(
 		_id: {
 			type: mongoose.Schema.Types.String,
 			required: [true, 'document must has an id'],
-			index: true,
-			unique: [true, 'id must be unique'],
 		},
 		name: {
 			first: {
@@ -72,6 +70,10 @@ const usersSchema = new mongoose.Schema(
 				default: 0,
 				min: [0, "your beans can't be less than 0"],
 			},
+			spends: {
+				type: Number,
+				default: 0,
+			},
 		},
 		level: {
 			type: Number,
@@ -110,15 +112,14 @@ const usersSchema = new mongoose.Schema(
 			},
 		],
 	},
-	{ timestamps: true, _id: false }
+	{ timestamps: true }
 );
+
 const groupsSchema = new mongoose.Schema(
 	{
 		_id: {
 			type: mongoose.Schema.Types.String,
 			required: [true, 'this field is required'],
-			unique: true,
-			index: true,
 		},
 		name: {
 			type: String,
@@ -130,7 +131,7 @@ const groupsSchema = new mongoose.Schema(
 		},
 		description: String,
 	},
-	{ timestamps: true, _id: false }
+	{ timestamps: true }
 );
 
 const User = mongoose.model('User', usersSchema);

@@ -26,6 +26,13 @@ function dbconnect() {
 }
 dbconnect();
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
 	console.log('server listening to port', PORT);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+	console.log(`Error: ${err?.message}`);
+	// close the server & exit process
+	// server.close(() => process.exit(1));
 });

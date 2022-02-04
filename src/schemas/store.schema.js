@@ -4,8 +4,6 @@ const productCategorySchema = new mongoose.Schema(
 		_id: {
 			type: mongoose.Schema.Types.String,
 			required: [true, 'document must have an id'],
-			unique: [true, 'id must be unique'],
-			index: true,
 		},
 		name: {
 			type: String,
@@ -17,15 +15,13 @@ const productCategorySchema = new mongoose.Schema(
 			default: 'avatar default',
 		},
 	},
-	{ timestamps: true, _id: false }
+	{ timestamps: true }
 );
 const storeSchema = new mongoose.Schema(
 	{
 		_id: {
 			type: mongoose.Schema.Types.String,
 			required: [true, 'document must have an id'],
-			unique: [true, 'id must be unique'],
-			index: true,
 		},
 		name: {
 			type: String,
@@ -50,7 +46,7 @@ const storeSchema = new mongoose.Schema(
 			default: 'avatar default',
 		},
 	},
-	{ timestamps: true, _id: false }
+	{ timestamps: true }
 );
 
 const Store = mongoose.model('Store', storeSchema);

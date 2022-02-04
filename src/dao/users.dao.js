@@ -133,81 +133,93 @@ class UserDAO {
 	 *  @returns {DAOResponse} // return either success or an error object
 	 *------------------------**/
 
-	static async Follow(user_id, id_to_follow) {
-		try {
-			await User.updateOne(
-				{
-					_id: user_id,
-					followings: { $nin: [id_to_follow, null] },
-				},
-				{ $push: { followings: id_to_follow } }
-			);
-			return { success: true };
-		} catch (error) {
-			console.error(`Error occured while follow someone ${error}`);
-			return { error };
-		}
+	static Follow(user_id, id_to_follow) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const followResult = await User.updateOne(
+					{
+						_id: user_id,
+						followings: { $nin: [id_to_follow] },
+					},
+					{ $push: { followings: id_to_follow } }
+				);
+				if (!followResult.matchedCount) {
+					reject(new Error('you already follow this user.'));
+					return;
+				}
+				resolve({ success: true });
+			} catch (error) {
+				reject(error);
+			}
+		});
 	}
 
 	/**
 	 *  add user_id to `followings` field in his document
 	 *  @param {number} user_id // the id of user you want to unfollow
 	 *  @param {number} id_to_unfollow
-	 *  @returns {DAOResponse} // return either success or an error object
 	 **/
 	static async Unfollow(user_id, id_to_unfollow) {
-		try {
-			await User.updateOne(
-				{
-					_id: user_id,
-					followings: { $in: [id_to_unfollow, null] },
-				},
-				{ $pull: { followings: id_to_unfollow } }
-			);
-			return { success: true };
-		} catch (error) {
-			console.error(`Error occured while follow someone ${error}`);
-			return { error };
-		}
+		return new Promise(async (resolve, reject) => {
+			try {
+				const unfollowResult = await User.updateOne(
+					{
+						_id: user_id,
+						followings: { $in: [id_to_unfollow] },
+					},
+					{ $pull: { followings: id_to_unfollow } }
+				);
+				if (!unfollowResult.matchedCount) {
+					reject(new Error('you do not follow this user after now'));
+					return;
+				}
+				resolve({ success: true });
+			} catch (error) {
+				console.log(error);
+				reject(error);
+			}
+		});
 	}
 
 	/**
 	 *  add user_id to `followings` field in his document
 	 *  @param {string} user_id // the id of user that has followers
-	 *  @returns {DAOResponse} // return either success or an error object
 	 **/
 	static async getFollowers(user_id) {
-		try {
-			return await User.find(
-				{
-					_id: { $ne: user_id },
-					followings: { $in: [user_id] },
-				},
-				{ name: 1, picture: 1, _id: 1, gender: 1 }
-			);
-		} catch (error) {
-			console.error(`Error occured while follow someone ${error}`);
-			return { error };
-		}
+		return new Promise(async (resolve, reject) => {
+			try {
+				const getFollowersResult = await User.find(
+					{
+						_id: { $ne: user_id },
+						followings: { $in: [user_id] },
+					},
+					{ name: 1, avatar: 1 }
+				);
+				resolve(getFollowersResult);
+			} catch (error) {
+				reject(error);
+			}
+		});
 	}
 
 	/**
 	 *  add user_id to `followings` field in his document
 	 *  @param {string} user_id // the id of visitor user
 	 *  @param {string} user_to_visit // the id of user you want to visit
-	 *  @returns {DAOResponse} // return either success or an error object
 	 **/
 	static async addVisitor(user_id, user_to_visit) {
-		try {
-			await User.updateOne(
-				{ _id: user_id, visits: { $nin: [user_to_visit] } },
-				{ $push: { visits: user_to_visit } }
-			);
-			return { success: true };
-		} catch (error) {
-			console.error(`Error occured while add visitor ${error}`);
-			return { error };
-		}
+		return new Promise(async (resolve, reject) => {
+			try {
+				await User.updateOne(
+					{ _id: user_id, visits: { $nin: [user_to_visit] } },
+					{ $push: { visits: user_to_visit } }
+				);
+
+				resolve({ success: true });
+			} catch (error) {
+				reject(error);
+			}
+		});
 	}
 
 	/**
@@ -219,14 +231,21 @@ class UserDAO {
 		return new Promise(async (resolve, reject) => {
 			try {
 				let { buyer, product, quantity } = info;
-				const productDB = await Store.findById(product, {
-					price: 1,
-					_id: 0,
-				});
-				let totalPrice = productDB.price * quantity;
 
+				const [productDB, settings] = await Promise.all([
+					Store.findById(product, {
+						price: 1,
+						_id: 0,
+					}),
+					Settings.findOne({}, { level_reqs: 1, _id: 0 }),
+				]);
+				if (!productDB) {
+					reject(new Error('this product may be deleted'));
+					return;
+				}
+				let totalPrice = productDB.price * quantity;
 				// if product already exist in products array
-				let saleResult = await User.updateOne(
+				await User.findOneAndUpdate(
 					{
 						_id: buyer,
 						'wallet.golds': { $gte: totalPrice },
@@ -236,29 +255,57 @@ class UserDAO {
 						$inc: {
 							'products.$.quantity': quantity,
 							'wallet.golds': -totalPrice,
+							'wallet.spends': totalPrice,
 						},
 					}
-				);
-
-				// if product doesn't exist in products array
-				if (!saleResult.modifiedCount) {
-					saleResult = await User.updateOne(
-						{
-							_id: buyer,
-							'wallet.golds': { $gte: totalPrice },
-							'products.id': { $ne: product },
-						},
-						{
-							$push: {
-								products: { id: product, quantity },
+				).exec(async (err, result) => {
+					if (err) reject(new Error(err));
+					if (!result) {
+						// if product doesn't exist in products array
+						return (result = await User.findOneAndUpdate(
+							{
+								_id: buyer,
+								'wallet.golds': { $gte: totalPrice },
+								'products.id': { $ne: product },
 							},
-							$inc: {
-								'wallet.golds': -totalPrice,
-							},
-						}
-					);
-				}
-				resolve(saleResult);
+							{
+								$push: {
+									products: { id: product, quantity },
+								},
+								$inc: {
+									'wallet.golds': -totalPrice,
+									'wallet.spends': totalPrice,
+								},
+							}
+						).exec(async (err, res) => {
+							if (err) reject(new Error(err));
+							// if the buyer has no golds enough to buy products
+							if (!res) {
+								reject(
+									new Error("you don't have enough golds")
+								);
+								return;
+							}
+							if (
+								res.wallet.spends >= settings.level_reqs.spends
+							) {
+								res.level += 1;
+								res.save();
+								resolve({ success: true });
+								return;
+							}
+							resolve({ success: true });
+						}));
+					}
+					if (result.wallet.spends >= settings.level_reqs.spends) {
+						result.level += 1;
+						result.save();
+						resolve({ success: true });
+						return;
+					}
+					// else
+					resolve({ success: true });
+				});
 			} catch (error) {
 				reject(error);
 			}
@@ -329,10 +376,67 @@ class UserDAO {
 								'error occured while sending gift, please do not worry about your gift we will resend it later.'
 							)
 						);
+
 						return;
 					}
 				}
 				resolve(sendGiftResult);
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	static convertCurrence({ user_id, quantity }) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const settings = await Settings.findOne({}, { beans_golds: 1 });
+				if (quantity < settings.beans_golds) {
+					reject(
+						new Error(
+							'quantity is invalid, it must at least ' +
+								settings.beans_golds +
+								' beans'
+						)
+					);
+					return;
+				}
+				console.log(user_id);
+				const convertResult = await User.updateOne(
+					{
+						_id: user_id,
+						'wallet.beans': {
+							$gte: quantity,
+						},
+					},
+					{
+						$inc: {
+							'wallet.golds': quantity / settings.beans_golds,
+							'wallet.beans': -quantity,
+						},
+					}
+				);
+				if (!convertResult.matchedCount) {
+					reject(
+						new Error(
+							'your beans is not enough to convert them to golds, you must have at lease ' +
+								settings.beans_golds +
+								' beans.'
+						)
+					);
+					return;
+				}
+				resolve({ success: convertResult });
+			} catch (error) {
+				console.log('errrrr', error);
+				reject(error);
+			}
+		});
+	}
+
+	static upgradeLevel(user_id) {
+		return new Promise(async (resolve, reject) => {
+			try {
 			} catch (error) {
 				reject(error);
 			}

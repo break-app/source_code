@@ -152,57 +152,47 @@ class UserController {
 		}
 	}
 
-	static async FollowSomeOne(req, res) {
+	static async FollowSomeOne(req, res, next) {
 		try {
 			const { id } = req.user;
 			const { id_to_follow } = req.body;
 			const followResult = await UserDAO.Follow(id, id_to_follow);
-			if (!followResult.success) {
-				res.status(400).json({ error: followResult.error });
-				return;
-			}
+
 			res.json(followResult);
 		} catch (error) {
-			res.status(500).json({ error });
+			next(error);
 		}
 	}
 
-	static async UnfollowSomeOne(req, res) {
+	static async UnfollowSomeOne(req, res, next) {
 		try {
 			const { id } = req.user;
 			const { id_to_unfollow } = req.body;
 			const followResult = await UserDAO.Unfollow(id, id_to_unfollow);
-			if (!followResult.success) {
-				res.status(400).json({ error: followResult.error });
-				return;
-			}
 			res.json(followResult);
 		} catch (error) {
-			res.status(500).json({ error });
+			next(error);
 		}
 	}
 
-	static async getFollowers(req, res) {
+	static async getFollowers(req, res, next) {
 		try {
 			const { id } = req.user;
 			const followersResult = await UserDAO.getFollowers(id);
 			res.json(followersResult);
 		} catch (error) {
-			res.status(500).json({ error });
+			next(error);
 		}
 	}
-	static async addVisitor(req, res) {
+	static async addVisitor(req, res, next) {
 		try {
 			const { id } = req.user; // id of visitor user
 			const { user_to_visit } = req.body; //  id of user to visit
 			const followersResult = await UserDAO.addVisitor(id, user_to_visit);
-			if (!followersResult.success) {
-				res.status(400).json({ error: followersResult.error });
-				return;
-			}
+
 			res.json(followersResult);
 		} catch (error) {
-			res.status(500).json({ error });
+			next(error);
 		}
 	}
 
@@ -223,17 +213,7 @@ class UserController {
 
 			const buyResult = await UserDAO.buyProduct(info);
 
-			// if the buyer has no golds enough to buy products
-			if (!buyResult.matchedCount) {
-				res.status(400).json({
-					success: false,
-					message: 'your golds is not enough, please recharge',
-				});
-				return;
-			}
-			res.status(200).json({
-				result: buyResult,
-			});
+			res.status(200).json(buyResult);
 		} catch (error) {
 			next(error);
 		}
@@ -261,6 +241,22 @@ class UserController {
 						msg: 'your gift has been sent successfully',
 					})
 				);
+			} catch (error) {
+				reject(next(error));
+			}
+		});
+	}
+
+	static convertCurrence(req, res, next) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const { id } = req.user;
+				const { quantity } = req.body;
+				const convertResult = await UserDAO.convertCurrence({
+					user_id: id,
+					quantity,
+				});
+				res.json(convertResult);
 			} catch (error) {
 				reject(next(error));
 			}
