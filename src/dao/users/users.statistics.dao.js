@@ -6,7 +6,8 @@ class TopGivers {
 			try {
 				let date = new Date();
 				date.setDate(date.getDate() - 1);
-
+				let dayFollowing = new Date();
+				dayFollowing.setDate(dayFollowing.getDate() + 1);
 				const dailyResult = await User.aggregate([
 					{
 						$match: {
@@ -14,24 +15,64 @@ class TopGivers {
 						},
 					},
 					{ $unwind: '$gives' },
+
 					{ $project: { gives: 1 } },
 					{
 						$group: {
-							_id: {
-								gives: {
+							_id: '$gives.giver',
+							count: {
+								$sum: {
 									$cond: [
-										{ $gt: ['$gives.createdAt', date] },
 										{
-											quantity: {
-												$sum: '$gives.quantity',
-											},
+											$and: [
+												{
+													$gt: [
+														'$gives.createdAt',
+														date,
+													],
+												},
+												{
+													$lt: [
+														'$gives.createdAt',
+														dayFollowing,
+													],
+												},
+											],
 										},
+										'$gives.quantity',
 										0,
 									],
 								},
 							},
 						},
 					},
+
+					{
+						$lookup: {
+							from: 'users',
+							foreignField: '_id',
+							localField: '_id',
+							as: 'user',
+						},
+					},
+					{ $unwind: '$user' },
+					{
+						$project: {
+							totalDailyGives: '$count',
+							user: {
+								name: {
+									$concat: [
+										'$user.name.first',
+										' ',
+										'$user.name.last',
+									],
+								},
+								avatar: '$user.avatar',
+								email: '$user.email',
+							},
+						},
+					},
+					{ $sort: { topDailyGives: -1 } },
 				]);
 				resolve(dailyResult);
 			} catch (error) {
