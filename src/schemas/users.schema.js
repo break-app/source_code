@@ -1,5 +1,29 @@
 const mongoose = require('mongoose');
 
+const givingSchema = new mongoose.Schema(
+	{
+		giver: {
+			type: mongoose.Schema.Types.String,
+			required: true,
+		},
+		receiver: {
+			type: mongoose.Schema.Types.String,
+			required: true,
+		},
+		quantity: {
+			type: Number,
+			required: true,
+		},
+		scope: {
+			type: String,
+			required: true,
+		},
+	},
+	{
+		_id: false,
+		timestamps: true,
+	}
+);
 const usersSchema = new mongoose.Schema(
 	{
 		_id: {
@@ -83,16 +107,7 @@ const usersSchema = new mongoose.Schema(
 		groups: [{ type: mongoose.Schema.Types.String, ref: 'Group' }],
 		followings: [{ type: mongoose.Schema.Types.String, ref: 'User' }],
 		rating: { type: Number, default: 0 },
-		gives: {
-			global: {
-				type: Number,
-				default: 0,
-			},
-			room: {
-				type: Number,
-				default: 0,
-			},
-		},
+		gives: [givingSchema],
 		visits: [
 			{
 				type: mongoose.Schema.Types.String,

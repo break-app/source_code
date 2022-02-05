@@ -1,9 +1,21 @@
-const { User } = require('../schemas/users.schema');
-const Session = require('../schemas/sessions.schema');
-const { Store } = require('../schemas/store.schema');
+const { User } = require('../../schemas/users.schema');
+const Session = require('../../schemas/sessions.schema');
+const { Store } = require('../../schemas/store.schema');
 const ObjectId = require('mongoose').Types.ObjectId;
-const Settings = require('../schemas/settings.schema');
-const idGenerator = require('../api/helpers/idGenerator');
+const Settings = require('../../schemas/settings.schema');
+const idGenerator = require('../../api/helpers/idGenerator');
+
+class UserHelper {
+	constructor(user) {
+		this.user = user;
+	}
+	async upgradeLevel() {
+		this.user.level += 1;
+		this.user.wallet.spends = 0;
+		await this.user.save();
+		return this.user;
+	}
+}
 class UserDAO {
 	/**-----------------------
      *  For this ticket, you will need to implement the following methods:
@@ -17,15 +29,70 @@ class UserDAO {
      * You can find these methods below this comment. Make sure to read the     comments Sin each method to better understand the implementation.
      *------------------------**/
 
+	static async getUser(email) {
+		try {
+			return Promise.resolve(await User.findOne({ email }));
+		} catch (error) {
+			Promise.reject(error);
+		}
+	}
 	/**
 	 * Finds a user in the `users` collection
 	 * @param {string} email - The email of the desired user
 	 * @returns {Object | null} Returns either a single user or nothing
 	 */
-	static async getUser(email) {
+	static async getUserProfile(data) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				resolve(await User.findOne({ email }));
+				const { visitor, userId } = data;
+				// const user = await User.findOne({ email });
+
+				let user = await User.updateOne(
+					{ _id: visitor, visits: { $nin: [userId] } },
+					{ $push: { visits: userId } }
+				);
+				user = await User.aggregate([
+					{ $match: { _id: userId } },
+					{
+						$lookup: {
+							from: 'users',
+							pipeline: [
+								{
+									$match: {
+										_id: { $ne: visitor },
+										followings: {
+											$in: [userId],
+										},
+									},
+								},
+								{
+									$count: 'count',
+								},
+							],
+							as: 'followers',
+						},
+					},
+					{ $unwind: '$followers' },
+					{
+						$project: {
+							_id: 0,
+							personal_info: {
+								name: {
+									$concat: ['$name.first', ' ', '$name.last'],
+								},
+								avatar: '$avatr',
+								gender: '$gender',
+								email: '$email',
+								age: '$age',
+							},
+							followings: { $size: '$followings' },
+							followers: '$followers.count',
+							rating: 1,
+							level: 1,
+						},
+					},
+				]);
+				resolve(user);
 			} catch (error) {
 				reject(error);
 			}
@@ -232,6 +299,7 @@ class UserDAO {
 			try {
 				let { buyer, product, quantity } = info;
 
+				// get product and settings info from database
 				const [productDB, settings] = await Promise.all([
 					Store.findById(product, {
 						price: 1,
@@ -239,11 +307,16 @@ class UserDAO {
 					}),
 					Settings.findOne({}, { level_reqs: 1, _id: 0 }),
 				]);
+
+				// product doesn't exists in database
 				if (!productDB) {
 					reject(new Error('this product may be deleted'));
 					return;
 				}
+
+				// total price of buy process
 				let totalPrice = productDB.price * quantity;
+
 				// if product already exist in products array
 				await User.findOneAndUpdate(
 					{
@@ -259,9 +332,14 @@ class UserDAO {
 						},
 					}
 				).exec(async (err, result) => {
+					// if err with collection
 					if (err) reject(new Error(err));
+
+					// two probabilies
 					if (!result) {
-						// if product doesn't exist in products array
+						// 1. the wanted product doesn't in the user's products array --> I will push it
+						// 2. the client golds is not enuogh
+
 						return (result = await User.findOneAndUpdate(
 							{
 								_id: buyer,
@@ -278,33 +356,48 @@ class UserDAO {
 								},
 							}
 						).exec(async (err, res) => {
+							// if error
 							if (err) reject(new Error(err));
-							// if the buyer has no golds enough to buy products
+
+							// I have one probabily
 							if (!res) {
+								// the user has no enough golds to buy the product
 								reject(
 									new Error("you don't have enough golds")
 								);
 								return;
 							}
+
+							// if balance of golds allow to buy the product
+							// check if wallet.spends of user is greater than or equal the settings.level_reqs.spends
+							// if true I will upgrade user's level
 							if (
 								res.wallet.spends >= settings.level_reqs.spends
 							) {
-								res.level += 1;
-								res.save();
-								resolve({ success: true });
+								const upgradeLevel = new UserHelper(
+									res
+								).upgradeLevel();
+								resolve(upgradeLevel);
 								return;
 							}
-							resolve({ success: true });
+							// that means user's spends doesn't greater than or equal settings.level_req.spends yet
+							resolve(res);
 						}));
 					}
+
+					// if balance of golds allow to buy the product
+					// check if wallet.spends of user is greater than or equal the settings.level_reqs.spends
+					// if true I will upgrade user's level
 					if (result.wallet.spends >= settings.level_reqs.spends) {
-						result.level += 1;
-						result.save();
-						resolve({ success: true });
+						const upgradeLevel = new UserHelper(
+							result
+						).upgradeLevel();
+						resolve(upgradeLevel);
 						return;
 					}
-					// else
-					resolve({ success: true });
+
+					// that means user's spends doesn't greater than or equal settings.level_req.spends yet
+					resolve(result);
 				});
 			} catch (error) {
 				reject(error);
@@ -341,6 +434,15 @@ class UserDAO {
 					{
 						$inc: {
 							'products.$.quantity': -gift_qty,
+						},
+
+						$push: {
+							gives: {
+								giver: sender,
+								receiver: reciever,
+								quantity: gift_qty * gift_value.price,
+								scope: 'global',
+							},
 						},
 					}
 				);
@@ -429,15 +531,6 @@ class UserDAO {
 				resolve({ success: convertResult });
 			} catch (error) {
 				console.log('errrrr', error);
-				reject(error);
-			}
-		});
-	}
-
-	static upgradeLevel(user_id) {
-		return new Promise(async (resolve, reject) => {
-			try {
-			} catch (error) {
 				reject(error);
 			}
 		});

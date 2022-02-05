@@ -5,7 +5,8 @@ const morgan = require('morgan');
 /**------------------------------------------------------------------------
  *                            ?ImportROUTES
  *------------------------------------------------------------------------**/
-const users = require('./api/routes/users.route');
+const users = require('./api/routes/users/users.route');
+const usersStatistics = require('./api/routes/users/users.statistics.route');
 const rooms = require('./api/routes/rooms.route');
 const store = require('./api/routes/store.route');
 const settings = require('./api/routes/settings.route');
@@ -21,6 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
  *    ?UseRoutes
  *========================**/
 app.use('/api/v1/users', users);
+app.use('/api/v1/statistics/users', usersStatistics);
 app.use('/api/v1/rooms', rooms);
 app.use('/api/v1/store', store);
 app.use('/api/v1/settings', settings);

@@ -2,7 +2,7 @@ const uid = function () {
 	return Math.floor(100000 + Math.random() * 900000);
 };
 
-const UserDAO = require('../../dao/users.dao');
+const UserDAO = require('../../../dao/users/users.dao');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -122,7 +122,18 @@ class UserController {
 			return;
 		}
 	}
+	static async getUserProfile(req, res, next) {
+		try {
+			const profileResult = await UserDAO.getUserProfile({
+				visitor: req.user.id,
+				userId: req.body.userId,
+			});
 
+			res.json(profileResult);
+		} catch (error) {
+			next(error);
+		}
+	}
 	static async logout(req, res) {
 		try {
 			const userObj = req.user;

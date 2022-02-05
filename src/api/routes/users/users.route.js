@@ -1,9 +1,9 @@
 const { Router } = require('express');
 
-const { UserController } = require('../controllers/users.controller');
-const validate = require('../helpers/validationLayers/user.layer');
-const auth = require('../middlewares/auth.middleware');
-const { catchValidationError } = require('../middlewares/validationError');
+const { UserController } = require('../../controllers/users/users.controller');
+const validate = require('../../helpers/validationLayers/user.layer');
+const auth = require('../../middlewares/auth.middleware');
+const { catchValidationError } = require('../../middlewares/validationError');
 const router = Router();
 
 router
@@ -19,5 +19,6 @@ router.route('/add_visit').post(auth, UserController.addVisitor);
 router.route('/buy_product').post(auth, UserController.buyProduct);
 router.route('/send_gift').post(auth, UserController.sendGift);
 router.route('/convert_currence').post(auth, UserController.convertCurrence);
+router.route('/getUserProfile').get(auth, UserController.getUserProfile);
 
 module.exports = router;
