@@ -1,12 +1,16 @@
-// - CRUD Room -> userId, roomInfo
-// - addMembers -> memberId, roomId
-// - addAdmins -> memberId, roomId
-// - removeMembers -> memberId, roomId
-// - removeAdmins -> memberId, roomId
-// - addGeneras -> memberId, roomId
-// - removeGeneras -> memberId, roomId
-// - goinMembers -> memberId, roomId
-// - search -> searchInfo
+// - create Room    ---> (roomInfo)          --->  line ~ 21
+// - update Room    ---> (roomId, roomInfo)  --->  line ~ 29
+// - addMembers     ---> (memberId, roomId)  --->  line ~ 41
+// - joinMembers    ---> (memberId, roomId)  --->  line ~ 52
+// - removeMembers  ---> (memberId, roomId)  --->  line ~ 63
+// - addAdmins      ---> (memberId, roomId)  --->  line ~ 74
+// - removeAdmins   ---> (memberId, roomId)  --->  line ~ 86
+// - addGeneras     ---> (memberId, roomId)  --->  line ~ 98
+// - removeGeneras  ---> (memberId, roomId)  --->  line ~ 110
+// - get Room by Id ---> (roomId)            --->  line ~ 123
+// - get all Rooms  ---> (roomId)            --->  line ~ 199
+// - delete Room    ---> (roomId)            --->  line ~ 283
+// - search         ---> (searchInfo)
 
 const checkDataExist = require('../api/helpers/notFoundData');
 const verifyUpdates = require('../api/helpers/verifyUpdates');
@@ -45,37 +49,71 @@ class RoomDAO {
             throw error;
         }
     }
+    static async joinRoom(roomId, userId) {
+        try {
+            const room = await Room.findByIdAndUpdate(roomId, {
+                $addToSet: { room_members: userId },
+            });
+            checkDataExist(room);
+            return;
+        } catch (error) {
+            throw error;
+        }
+    }
     static async removeRoomMembers(roomId, membersArray = []) {
         try {
             const room = await Room.findByIdAndUpdate(roomId, {
                 $pullAll: { room_members: membersArray },
             });
             checkDataExist(room);
-            console.log(room);
             return;
         } catch (error) {
             throw error;
         }
     }
-    static async addRoomAdmins(roomId, adminsArray) {
+    static async addRoomAdmins(roomId, adminsArray = []) {
         try {
             const room = await Room.updateOne(
                 { _id: roomId },
-                { $push: adminsArray }
+                { $addToSet: { room_admins: { $each: adminsArray } } }
             );
-
+            checkDataExist(room);
+            return;
+        } catch (error) {
+            throw error;
+        }
+    }
+    static async removeRoomAdmins(roomId, adminsArray = []) {
+        try {
+            const room = await Room.updateOne(
+                { _id: roomId },
+                { $pullAll: { room_admins: adminsArray } }
+            );
+            checkDataExist(room);
             return room;
         } catch (error) {
             throw error;
         }
     }
-    static async removeRoomAdmins(roomId, adminsArray) {
+    static async addRoomGeneras(roomId, generasArray = []) {
         try {
             const room = await Room.updateOne(
                 { _id: roomId },
-                { $pull: adminsArray }
+                { $addToSet: { room_generas: { $each: generasArray } } }
             );
-
+            checkDataExist(room);
+            return;
+        } catch (error) {
+            throw error;
+        }
+    }
+    static async removeRoomGeneras(roomId, generasArray = []) {
+        try {
+            const room = await Room.updateOne(
+                { _id: roomId },
+                { $pullAll: { room_generas: generasArray } }
+            );
+            checkDataExist(room);
             return room;
         } catch (error) {
             throw error;
@@ -252,18 +290,5 @@ class RoomDAO {
         }
     }
 }
-
-// exports.createRoom = (roomInfo) => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             const room = await Room.create(roomInfo);
-
-//             resolve(room);
-//         } catch (error) {
-//             error.status = error.status || 400;
-//             reject(error);
-//         }
-//     });
-// };
 
 module.exports = RoomDAO;

@@ -45,7 +45,7 @@ const roomSchema = new mongoose.Schema({
             ref: 'User',
         },
     ],
-    generas: [
+    room_generas: [
         {
             type: String,
         },
