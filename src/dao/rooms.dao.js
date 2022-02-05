@@ -17,6 +17,7 @@ const verifyUpdates = require('../api/helpers/verifyUpdates');
 const Room = require('../schemas/rooms.schema');
 const { ObjectId } = require('bson');
 const idGenerator = require('../api/helpers/idGenerator');
+const UserDAO = require('./users/users.dao');
 
 class RoomDAO {
     static createRoom(roomInfo) {

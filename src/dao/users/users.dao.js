@@ -4,6 +4,7 @@ const { Store } = require('../../schemas/store.schema');
 const ObjectId = require('mongoose').Types.ObjectId;
 const Settings = require('../../schemas/settings.schema');
 const idGenerator = require('../../api/helpers/idGenerator');
+const checkDataExist = require('../../api/helpers/notFoundData');
 
 class UserHelper {
 	constructor(user) {
@@ -34,6 +35,18 @@ class UserDAO {
 		} catch (error) {
 			Promise.reject(error);
 		}
+	}
+
+	static getUserById(userId) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const user = await User.findById(userId);
+				checkDataExist(user);
+				resolve();
+			} catch (error) {
+				reject(error);
+			}
+		});
 	}
 	/**
 	 * Finds a user in the `users` collection
@@ -162,7 +175,6 @@ class UserDAO {
 	 */
 	static async getUserSession(email) {
 		try {
-			// TODO Ticket: User Management
 			// Retrieve the session document corresponding with the user's email.
 			return Session.findOne({ email });
 		} catch (e) {

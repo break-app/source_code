@@ -1,5 +1,6 @@
 const createHttpError = require('http-errors');
 const RoomDAO = require('../../dao/rooms.dao');
+const UserDAO = require('../../dao/users/users.dao');
 const idGenerator = require('../helpers/idGenerator');
 
 class RoomControllers {
@@ -81,6 +82,11 @@ class RoomControllers {
             const { members } = req.body;
             const { id: roomId } = req.params;
 
+            // check if the members exists
+            for (let m in members) {
+                await UserDAO.getUserById(members[m]);
+            }
+
             await RoomDAO.addRoomMembers(roomId, members);
             res.status(200).json({
                 success: true,
@@ -95,8 +101,6 @@ class RoomControllers {
             const { id: userId } = req.user;
             const { room_password } = req.body;
             const { id: roomId } = req.params;
-
-            console.log(userId);
 
             const room = await RoomDAO.getRoomById(roomId);
             if (room.private && room_password !== room.room_password) {
@@ -130,6 +134,11 @@ class RoomControllers {
         try {
             const { admins } = req.body;
             const { id: roomId } = req.params;
+
+            // check if the members exists
+            for (let m in admins) {
+                await UserDAO.getUserById(admins[m]);
+            }
 
             await RoomDAO.addRoomAdmins(roomId, admins);
             res.status(200).json({
