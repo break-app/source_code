@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 
-const idRef = mongoose.Schema.Types.ObjectId;
+const idRef = mongoose.Schema.Types.String;
 
 const roomSchema = new mongoose.Schema({
+    _id: {
+        type: mongoose.Schema.Types.String,
+        required: [true, 'document must have an id'],
+    },
     room_id: {
         type: String,
         required: [true, 'you must provide a number for the room'],

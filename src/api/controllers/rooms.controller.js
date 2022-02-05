@@ -92,9 +92,11 @@ class RoomControllers {
 
     static async joinRoom(req, res, next) {
         try {
-            const { _id: userId } = req.user;
+            const { id: userId } = req.user;
             const { room_password } = req.body;
             const { id: roomId } = req.params;
+
+            console.log(userId);
 
             const room = await RoomDAO.getRoomById(roomId);
             if (room.private && room_password !== room.room_password) {
@@ -174,6 +176,20 @@ class RoomControllers {
             await RoomDAO.removeRoomGeneras(roomId, generas);
             res.status(200).json({
                 success: true,
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    static async searchForRooms(req, res, next) {
+        try {
+            const { room_name, room_id } = req.query;
+
+            const rooms = await RoomDAO.searchForRooms(room_name, room_id);
+            res.status(200).json({
+                success: true,
+                rooms,
             });
         } catch (err) {
             next(err);

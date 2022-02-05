@@ -12,7 +12,6 @@ const formatedValidationResult = validationResult.withDefaults({
 
 const catchValidationError = (req, res, next) => {
     const result = formatedValidationResult(req);
-    console.log(result);
     if (!result.isEmpty()) {
         return res.status(422).json({
             message: 'VALIDATION_ERROR',

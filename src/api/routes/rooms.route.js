@@ -15,6 +15,8 @@ router
         RoomControllers.createRoom
     );
 
+router.route('/search').get(RoomControllers.searchForRooms);
+
 router
     .route('/:id')
     .get(RoomControllers.getRoomById)
@@ -33,11 +35,46 @@ router.route('/:id/add-members').put(
     RoomControllers.addRoomMembers
 );
 
+router.route('/:id/join-member').put(
+    auth,
+    // validate('updateRoom'),
+    catchValidationError,
+    RoomControllers.joinRoom
+);
+
 router.route('/:id/remove-members').put(
     auth,
     // validate('updateRoom'),
     catchValidationError,
     RoomControllers.removeRoomMembers
+);
+
+router.route('/:id/add-admins').put(
+    auth,
+    // validate('updateRoom'),
+    catchValidationError,
+    RoomControllers.addRoomAdmins
+);
+
+router.route('/:id/remove-admins').put(
+    auth,
+    // validate('updateRoom'),
+    catchValidationError,
+    RoomControllers.removeRoomAdmins
+);
+
+router.route('/:id/add-generas').put(
+    auth,
+    // validate('updateRoom'),
+    catchValidationError,
+    RoomControllers.addRoomGeneras
+);
+
+router.route('/:id/remove-generas').put(
+    auth,
+    // validate('updateRoom'),
+    catchValidationError,
+    RoomControllers.removeRoomGeneras
 );
 
 module.exports = router;

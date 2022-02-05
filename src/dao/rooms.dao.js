@@ -16,12 +16,16 @@ const checkDataExist = require('../api/helpers/notFoundData');
 const verifyUpdates = require('../api/helpers/verifyUpdates');
 const Room = require('../schemas/rooms.schema');
 const { ObjectId } = require('bson');
+const idGenerator = require('../api/helpers/idGenerator');
 
 class RoomDAO {
     static createRoom(roomInfo) {
         return new Promise(async (resolve, reject) => {
             try {
-                const room = await Room.create(roomInfo);
+                const room = await Room.create({
+                    ...roomInfo,
+                    _id: idGenerator(),
+                });
                 resolve(room);
             } catch (error) {
                 reject(error);
@@ -87,7 +91,7 @@ class RoomDAO {
     }
 
     static addRoomAdmins(roomId, adminsArray = []) {
-        return new Promise(async (resolve, resolve) => {
+        return new Promise(async (resolve, reject) => {
             try {
                 const room = await Room.updateOne(
                     { _id: roomId },
@@ -148,7 +152,7 @@ class RoomDAO {
 
     static getRoomById(roomId) {
         const pipeline = [
-            { $match: { _id: ObjectId(roomId) } },
+            { $match: { _id: roomId } },
             {
                 $lookup: {
                     from: 'users',
@@ -315,12 +319,35 @@ class RoomDAO {
         });
     }
 
-    static searchForRooms(roomInfo) {
-        const pipeline = [{ $match: { roomInfo } }];
+    static searchForRooms(room_name = null, room_id = null) {
+        const matchId = {
+            room_id: { $regex: room_id, $options: 'i' },
+        };
+        const matchName = {
+            room_name: { $regex: room_name, $options: 'i' },
+        };
+        const pipeline = [
+            {
+                $match:
+                    matchName.room_name.$regex === null
+                        ? matchId
+                        : matchId.room_id.$regex === null
+                        ? matchName
+                        : {},
+            },
+            {
+                $project: {
+                    _id: 0,
+                    room_name: 1,
+                    room_avatar: 1,
+                    announcement: 1,
+                },
+            },
+        ];
         return new Promise(async (resolve, reject) => {
             try {
-                const room = await Room.aggregate(pipeline);
-                resolve(room);
+                const rooms = await Room.aggregate(pipeline);
+                resolve(rooms);
             } catch (error) {
                 reject(error);
             }
