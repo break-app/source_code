@@ -6,16 +6,6 @@ const Settings = require('../../schemas/settings.schema');
 const idGenerator = require('../../api/helpers/idGenerator');
 const checkDataExist = require('../../api/helpers/notFoundData');
 
-class UserHelper {
-	constructor(user) {
-		this.user = user;
-	}
-	async upgradeLevel() {
-		this.user.level += 1;
-		this.user.wallet.spends = 0;
-		return this.user;
-	}
-}
 class UserDAO {
 	/**-----------------------
      *  
