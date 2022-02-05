@@ -9,6 +9,22 @@ class UserStatisticsController {
 			next(error);
 		}
 	}
+	static async topWeeklyGivers(req, res, next) {
+		try {
+			const WeeklyResult = await UserStatisticsDAO.topWeeklyGivers();
+			res.json(WeeklyResult);
+		} catch (error) {
+			next(error);
+		}
+	}
+	static async topMonthlyGivers(req, res, next) {
+		try {
+			const WeeklyResult = await UserStatisticsDAO.topMonthlyGivers();
+			res.json(WeeklyResult);
+		} catch (error) {
+			next(error);
+		}
+	}
 }
 
 module.exports = UserStatisticsController;

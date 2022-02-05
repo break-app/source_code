@@ -5,5 +5,7 @@ const auth = require('../../middlewares/auth.middleware');
 const router = Router();
 
 router.route('/daily').get(UserStatisticsController.topDailyGivers);
+router.route('/weekly').get(UserStatisticsController.topWeeklyGivers);
+router.route('/monthly').get(UserStatisticsController.topMonthlyGivers);
 
 module.exports = router;
