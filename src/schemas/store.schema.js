@@ -1,20 +1,57 @@
 const mongoose = require('mongoose');
-
-const storeSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: [true, 'this field is required'],
-		unique: [true, 'this product is already exists'],
+const productCategorySchema = new mongoose.Schema(
+	{
+		_id: {
+			type: mongoose.Schema.Types.String,
+			required: [true, 'document must have an id'],
+		},
+		name: {
+			type: String,
+			required: true,
+			unique: true,
+		},
+		avatar: {
+			type: String,
+			default: 'avatar default',
+		},
 	},
-	price: {
-		type: Number,
-		required: [true, 'this field is required'],
+	{ timestamps: true }
+);
+const storeSchema = new mongoose.Schema(
+	{
+		_id: {
+			type: mongoose.Schema.Types.String,
+			required: [true, 'document must have an id'],
+		},
+		name: {
+			type: String,
+			required: [true, 'this field is required'],
+			unique: [true, 'this product is already exists'],
+		},
+		price: {
+			type: Number,
+			required: [true, 'this field is required'],
+		},
+		description: {
+			type: String,
+			required: [true, 'this field is required'],
+		},
+		category: {
+			type: mongoose.Schema.Types.String,
+			ref: 'ProductCategory',
+			required: true,
+		},
+		avatar: {
+			type: String,
+			default: 'avatar default',
+		},
 	},
-	description: {
-		type: String,
-		required: [true, 'this field is required'],
-	},
-});
+	{ timestamps: true }
+);
 
 const Store = mongoose.model('Store', storeSchema);
-module.exports = Store;
+const ProductCategory = mongoose.model(
+	'ProductCategory',
+	productCategorySchema
+);
+module.exports = { Store, ProductCategory };

@@ -5,9 +5,11 @@ const morgan = require('morgan');
 /**------------------------------------------------------------------------
  *                            ?ImportROUTES
  *------------------------------------------------------------------------**/
-const users = require('./api/routes/users.route');
+const users = require('./api/routes/users/users.route');
+const usersStatistics = require('./api/routes/users/users.statistics.route');
 const rooms = require('./api/routes/rooms.route');
 const store = require('./api/routes/store.route');
+const settings = require('./api/routes/settings.route');
 const errorHandler = require('./api/middlewares/errorHandler');
 const app = express();
 
@@ -20,19 +22,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
  *    ?UseRoutes
  *========================**/
 app.use('/api/v1/users', users);
+app.use('/api/v1/statistics/users', usersStatistics);
 app.use('/api/v1/rooms', rooms);
 app.use('/api/v1/store', store);
+app.use('/api/v1/settings', settings);
 
 /**======================
  *    ?Hanle DB Errors
  *========================**/
 app.use(errorHandler);
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-	console.log(`Error: ${err.message}`);
-	// close the server & exit process
-	server.close(() => process.exit(1));
-});
 
 module.exports = app;

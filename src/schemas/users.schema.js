@@ -1,20 +1,57 @@
 const mongoose = require('mongoose');
 
+const givingSchema = new mongoose.Schema(
+	{
+		giver: {
+			type: mongoose.Schema.Types.String,
+			required: true,
+		},
+		receiver: {
+			type: mongoose.Schema.Types.String,
+			required: true,
+		},
+		quantity: {
+			type: Number,
+			required: true,
+		},
+		scope: {
+			type: String,
+			required: true,
+		},
+	},
+	{
+		_id: false,
+		timestamps: true,
+	}
+);
 const usersSchema = new mongoose.Schema(
 	{
+		_id: {
+			type: mongoose.Schema.Types.String,
+			required: [true, 'document must has an id'],
+		},
 		name: {
 			first: {
 				type: String,
 				required: [true, 'this field is required'],
+				minlength: [
+					2,
+					'your first name must be more than one character',
+				],
 			},
 			last: {
 				type: String,
 				required: [true, 'this filed is required'],
+				minlength: [
+					2,
+					'your last name must be more than one character',
+				],
 			},
 		},
 		age: {
 			type: Number,
 			required: [true, 'this field is required'],
+			min: [18, 'you must be older than 18 years'],
 		},
 		role: {
 			type: String,
@@ -39,6 +76,7 @@ const usersSchema = new mongoose.Schema(
 		password: {
 			type: String,
 			required: [true, 'this filed is required'],
+			minlength: [8, 'password cannot less than 8 characters'],
 		},
 		gender: {
 			type: String,
@@ -49,113 +87,69 @@ const usersSchema = new mongoose.Schema(
 			golds: {
 				type: Number,
 				default: 6000,
+				min: [0, "your golds can't be less than 0"],
 			},
 			beans: {
+				type: Number,
+				default: 0,
+				min: [0, "your beans can't be less than 0"],
+			},
+			spends: {
 				type: Number,
 				default: 0,
 			},
 		},
 		level: {
 			type: Number,
-			default: 0,
+			default: 1,
+			min: [1, 'level cannot be less than 1'],
 		},
-
-		auth_token: {
-			type: String,
-		},
-		groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
-		followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+		groups: [{ type: mongoose.Schema.Types.String, ref: 'Group' }],
+		followings: [{ type: mongoose.Schema.Types.String, ref: 'User' }],
 		rating: { type: Number, default: 0 },
-		gives: {
-			global: {
-				type: Number,
-				default: 0,
-			},
-			room: {
-				type: Number,
-				default: 0,
-			},
-		},
+		gives: [givingSchema],
 		visits: [
 			{
-				type: mongoose.Schema.Types.ObjectId,
+				type: mongoose.Schema.Types.String,
 				ref: 'User',
 			},
 		],
 		products: [
-			// gifs | animations | frames | effects
 			{
-				product: {
-					type: mongoose.Schema.Types.ObjectId,
+				id: {
+					type: mongoose.Schema.Types.String,
 					ref: 'Store',
 				},
 				quantity: {
 					type: Number,
+					min: [1, 'quantity cannot be less than 0'],
 				},
 			},
 		],
 	},
 	{ timestamps: true }
 );
-// const friendsSchema = new mongoose.Schema(
-// 	{
-// 		requester: {
-// 			type: mongoose.Schema.Types.ObjectId,
-// 			ref: 'User',
-// 		},
-// 		recipiant: {
-// 			type: mongoose.Schema.Types.ObjectId,
-// 			ref: 'User',
-// 		},
-// 		status: {
-// 			type: Number,
-// 			enums: [
-// 				1, //'pending',
-// 				2, //'rejected'
-// 				3, //'friends'
-// 			],
-// 			default: 0,
-// 		},
-// 		request_id: {
-// 			type: Number,
-// 			required: [true, 'this field is required'],
-// 			unique: true,
-// 		},
-// 	},
-// 	{ timestamps: true }
-// );
-const groupsSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: [true, 'this field is required'],
-	},
-	group_id: {
-		type: Number,
-		required: [true, 'this field is required'],
-		unique: true,
-	},
-	picture: {
-		type: String,
-		default: 'group picture',
-	},
-	description: String,
-	category: {
-		type: mongoose.Schema.Types.Number,
-		ref: 'Category',
-	},
-});
 
-const categorySchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: [true, 'this field is required'],
+const groupsSchema = new mongoose.Schema(
+	{
+		_id: {
+			type: mongoose.Schema.Types.String,
+			required: [true, 'this field is required'],
+		},
+		name: {
+			type: String,
+			required: [true, 'this field is required'],
+		},
+		avatar: {
+			type: String,
+			default: 'group picture',
+		},
+		description: String,
 	},
-	description: String,
-});
+	{ timestamps: true }
+);
 
 const User = mongoose.model('User', usersSchema);
-// const Friend = mongoose.model('Friend', friendsSchema);
 const Group = mongoose.model('Group', groupsSchema);
-const Category = mongoose.model('Category', categorySchema);
 
-module.exports = { User, Group, Category };
+module.exports = { User, Group };
