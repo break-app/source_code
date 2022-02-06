@@ -2,6 +2,10 @@ const idGenerator = require('../api/helpers/idGenerator');
 const { Store, ProductCategory } = require('../schemas/store.schema');
 
 class StoreDAO {
+	constructor(page) {
+		this.page = page;
+	}
+
 	/**
 	 * @param {ProductInfo} productInfo
 	 **/
@@ -29,7 +33,9 @@ class StoreDAO {
 
 	static async getCategories() {
 		try {
-			return await ProductCategory.find();
+			return await ProductCategory.find({}, { name: 1, avatar: 1 }).limit(
+				10
+			);
 		} catch (error) {
 			throw error;
 		}
@@ -38,9 +44,13 @@ class StoreDAO {
 	/**
 	 * @param {string} category_id // the id of category
 	 **/
-	static async getCategoryProducts(category_id) {
+	async getCategoryProducts(category_id) {
 		try {
-			return await Store.find({ category: category_id }, { category: 0 });
+			return await Store.aggregate([
+				{ $match: { category: category_id } },
+				{ $skip: this.page * 10 },
+				{ $limit: 10 },
+			]);
 		} catch (error) {
 			throw error;
 		}

@@ -1,4 +1,6 @@
-const { Group, User } = require('../schemas/users.schema');
+const { User, Group } = require('../schemas/users.schema');
+const mongoose = require('mongoose');
+
 const idGenerator = require('../api/helpers/idGenerator');
 class GroupDAO {
 	/**-----------------------
@@ -32,7 +34,32 @@ class GroupDAO {
 			try {
 				const group = await Group.aggregate([
 					{ $match: { _id: groupId } },
-				]);
+					{
+						$lookup: {
+							from: 'users',
+							pipeline: [
+								{
+									$match: {
+										$expr: { $in: [groupId, '$groups'] },
+									},
+								},
+								{ $sortByCount: '$groups.groupId' },
+							],
+							as: 'members',
+						},
+					},
+					{ $unwind: '$members' },
+					{
+						$project: {
+							name: 1,
+							description: 1,
+							avatar: 1,
+							members: '$members.count',
+						},
+					},
+				]).cache({
+					key: groupId,
+				});
 				resolve(group);
 			} catch (error) {
 				reject(error);
@@ -101,6 +128,35 @@ class GroupDAO {
 	static getGroups() {
 		return new Promise(async (resolve, reject) => {
 			try {
+				const groups = await Group.aggregate([
+					{
+						$lookup: {
+							from: 'users',
+							let: { groupId: '$_id' },
+							pipeline: [
+								{
+									$match: {
+										$expr: {
+											$in: ['$$groupId', '$groups'],
+										},
+									},
+								},
+								{ $sortByCount: '$groups.groupId' },
+							],
+							as: 'members',
+						},
+					},
+					{ $unwind: '$members' },
+					{
+						$project: {
+							name: 1,
+							description: 1,
+							avatar: 1,
+							members: '$members.count',
+						},
+					},
+				]);
+				resolve(groups);
 			} catch (error) {
 				reject(error);
 			}

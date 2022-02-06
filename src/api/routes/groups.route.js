@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const GroupController = require('../controllers/groups.controller');
+
 const auth = require('../middlewares/auth.middleware');
 
 const router = Router();

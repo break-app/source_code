@@ -1,6 +1,8 @@
 const app = require('./server');
 
 const mongoose = require('mongoose');
+
+require('./api/helpers/cache');
 function dbconnect() {
 	mongoose
 		.connect(process.env.DB_URI)
@@ -26,7 +28,8 @@ function dbconnect() {
 }
 dbconnect();
 const PORT = process.env.PORT || 8080;
-const server = app.listen(PORT, () => {
+
+app.listen(PORT, () => {
 	console.log('server listening to port', PORT);
 });
 

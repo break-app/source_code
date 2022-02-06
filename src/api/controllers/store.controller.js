@@ -27,7 +27,8 @@ class StoreController {
 
 	static async getCategoryProducts(req, res, next) {
 		try {
-			const result = await StoreDAO.getCategoryProducts(
+			const page = req.query.page;
+			const result = await new StoreDAO(page).getCategoryProducts(
 				req.params.category_id
 			);
 			res.json({

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const cache = require('../api/helpers/cache');
 
 const givingSchema = new mongoose.Schema(
 	{
@@ -151,5 +152,4 @@ const groupsSchema = new mongoose.Schema(
 
 const User = mongoose.model('User', usersSchema);
 const Group = mongoose.model('Group', groupsSchema);
-
 module.exports = { User, Group };

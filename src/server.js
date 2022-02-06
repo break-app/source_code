@@ -2,6 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const morgan = require('morgan');
+
+const errorHandler = require('./api/middlewares/errorHandler');
+const app = express();
+require('./api/helpers/cache');
 /**------------------------------------------------------------------------
  *                            ?ImportROUTES
  *------------------------------------------------------------------------**/
@@ -11,8 +15,6 @@ const rooms = require('./api/routes/rooms.route');
 const store = require('./api/routes/store.route');
 const settings = require('./api/routes/settings.route');
 const groups = require('./api/routes/groups.route');
-const errorHandler = require('./api/middlewares/errorHandler');
-const app = express();
 
 app.use(cors());
 process.env.NODE_ENV !== 'prod' && app.use(morgan('dev'));
