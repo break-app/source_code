@@ -1,4 +1,4 @@
+require('dotenv').config();
+require('./src/api/utils/cache');
 
-require("dotenv").config()
-
-exports = module.exports = require("./src")
+exports = module.exports = require('./src');

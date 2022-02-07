@@ -67,7 +67,7 @@ class RoomControllers {
 
     static async getAllRooms(req, res, next) {
         try {
-            const rooms = await RoomDAO.getAllRooms();
+            const rooms = await RoomDAO.getAllRooms(req);
             res.status(200).json({
                 success: true,
                 rooms,

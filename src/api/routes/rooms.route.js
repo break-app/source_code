@@ -7,7 +7,7 @@ const auth = require('./../middlewares/auth.middleware');
 
 router
     .route('/')
-    .get(RoomControllers.getAllRooms)
+    .get(auth, RoomControllers.getAllRooms)
     .post(
         auth,
         validate('createRoom'),

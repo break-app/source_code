@@ -230,7 +230,7 @@ class RoomDAO {
         });
     }
 
-    static getAllRooms() {
+    static getAllRooms(req) {
         const pipeline = [
             { $match: {} },
             {
@@ -300,7 +300,9 @@ class RoomDAO {
         ];
         return new Promise(async (resolve, reject) => {
             try {
-                const rooms = await Room.aggregate(pipeline);
+                const rooms = await Room.aggregate(pipeline).cache({
+                    key: req.user.id,
+                });
                 resolve(rooms);
             } catch (error) {
                 reject(error);
