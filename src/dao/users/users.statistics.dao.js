@@ -1,14 +1,4 @@
 const { User } = require('../../schemas/users.schema');
-function period(period) {
-	let period_time = new Date();
-	period_time.setDate(period_time.getDate() - period);
-	let periodFollowing = new Date();
-	periodFollowing.setDate(periodFollowing.getDate() + 1);
-	return {
-		period_time,
-		periodFollowing,
-	};
-}
 
 class TopGivers {
 	constructor(period) {
