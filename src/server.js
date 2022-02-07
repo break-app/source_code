@@ -5,7 +5,6 @@ const morgan = require('morgan');
 
 const errorHandler = require('./api/middlewares/errorHandler');
 const app = express();
-require('./api/helpers/cache');
 /**------------------------------------------------------------------------
  *                            ?ImportROUTES
  *------------------------------------------------------------------------**/

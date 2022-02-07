@@ -4,6 +4,7 @@ const { validate } = require('../helpers/validationLayers/room.layers');
 
 const router = require('express').Router();
 const auth = require('./../middlewares/auth.middleware');
+const cleanCache = require('../middlewares/cleanCache');
 
 router
     .route('/')
@@ -12,6 +13,7 @@ router
         auth,
         validate('createRoom'),
         catchValidationError,
+        cleanCache,
         RoomControllers.createRoom
     );
 
