@@ -2,7 +2,6 @@ const app = require('./server');
 
 const mongoose = require('mongoose');
 
-require('./api/helpers/cache');
 function dbconnect() {
 	mongoose
 		.connect(process.env.DB_URI)

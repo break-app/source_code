@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const cache = require('../api/helpers/cache');
 
 const givingSchema = new mongoose.Schema(
 	{

@@ -2,6 +2,7 @@ const { Router } = require('express');
 const GroupController = require('../controllers/groups.controller');
 
 const auth = require('../middlewares/auth.middleware');
+var cleanCache = require('../middlewares/cleanCache');
 
 const router = Router();
 

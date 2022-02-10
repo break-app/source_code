@@ -111,7 +111,7 @@ class GroupDAO {
 					}
 				);
 				if (!user.matchedCount) {
-					reject(new Error('you are not join to this orject'));
+					reject(new Error('you are not join to this group'));
 					return;
 				}
 				if (!user.modifiedCount) {
@@ -125,9 +125,10 @@ class GroupDAO {
 		});
 	}
 
-	static getGroups() {
+	static getGroups(page) {
 		return new Promise(async (resolve, reject) => {
 			try {
+				const limit = 10;
 				const groups = await Group.aggregate([
 					{
 						$lookup: {
@@ -155,7 +156,12 @@ class GroupDAO {
 							members: '$members.count',
 						},
 					},
-				]);
+
+					// { $skip: (page - 1) * limit },
+					// { $limit: limit },
+				]).cache({
+					key: `all_groups page=${page}`,
+				});
 				resolve(groups);
 			} catch (error) {
 				reject(error);

@@ -52,7 +52,7 @@ class GroupController {
 
 	static async getGroups(req, res, next) {
 		try {
-			const Result = await GroupDAO.getGroups();
+			const Result = await GroupDAO.getGroups(req.query.page);
 			res.json(Result);
 		} catch (error) {
 			next(error);

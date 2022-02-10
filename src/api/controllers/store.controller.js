@@ -1,6 +1,9 @@
-const StoreDAO = require('../../dao/store.dao');
+let StoreDAO = require('../../dao/store.dao');
 
 class StoreController {
+	// constructor(StoreDAO) {
+	// 	this.StoreDAO = StoreDAO;
+	// }
 	static async addProduct(req, res, next) {
 		try {
 			const proudctResult = await StoreDAO.addProduct(req.body);
@@ -27,8 +30,7 @@ class StoreController {
 
 	static async getCategoryProducts(req, res, next) {
 		try {
-			const page = req.query.page;
-			const result = await new StoreDAO(page).getCategoryProducts(
+			const result = await StoreDAO.getCategoryProducts(
 				req.params.category_id
 			);
 			res.json({
@@ -41,7 +43,7 @@ class StoreController {
 
 	static async getCategories(req, res, next) {
 		try {
-			const result = await StoreDAO.getCategories();
+			const result = await StoreDAO.getCategories(req.query.page);
 			res.json({
 				result,
 			});
