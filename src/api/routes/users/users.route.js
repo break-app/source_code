@@ -7,8 +7,8 @@ const { catchValidationError } = require('../../middlewares/validationError');
 const router = Router();
 
 router
-	.route('/register')
-	.post(validate('addUser'), catchValidationError, UserController.register);
+    .route('/register')
+    .post(validate('addUser'), catchValidationError, UserController.register);
 router.route('/login').post(UserController.login);
 router.route('/delete/:id').delete(UserController.delete);
 router.route('/logout').post(auth, UserController.logout);

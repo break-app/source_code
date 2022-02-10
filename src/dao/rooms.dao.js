@@ -15,9 +15,7 @@
 const checkDataExist = require('../api/helpers/notFoundData');
 const verifyUpdates = require('../api/helpers/verifyUpdates');
 const Room = require('../schemas/rooms.schema');
-const { ObjectId } = require('bson');
 const idGenerator = require('../api/helpers/idGenerator');
-const UserDAO = require('./users/users.dao');
 
 class RoomDAO {
 	static createRoom(roomInfo) {
@@ -41,7 +39,7 @@ class RoomDAO {
 				const room = await Room.findByIdAndUpdate(roomId, {
 					$set: verifyUpdates(roomInfo, whiteList),
 				});
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -55,7 +53,7 @@ class RoomDAO {
 				const room = await Room.findByIdAndUpdate(roomId, {
 					$addToSet: { room_members: { $each: membersArray } },
 				});
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -69,7 +67,7 @@ class RoomDAO {
 				const room = await Room.findByIdAndUpdate(roomId, {
 					$addToSet: { room_members: userId },
 				});
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -83,7 +81,7 @@ class RoomDAO {
 				const room = await Room.findByIdAndUpdate(roomId, {
 					$pullAll: { room_members: membersArray },
 				});
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -98,7 +96,7 @@ class RoomDAO {
 					{ _id: roomId },
 					{ $addToSet: { room_admins: { $each: adminsArray } } }
 				);
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -113,7 +111,7 @@ class RoomDAO {
 					{ _id: roomId },
 					{ $pullAll: { room_admins: adminsArray } }
 				);
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -143,7 +141,7 @@ class RoomDAO {
 					{ _id: roomId },
 					{ $pullAll: { room_generas: generasArray } }
 				);
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -222,7 +220,7 @@ class RoomDAO {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const room = await Room.aggregate(pipeline);
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve(room[0]);
 			} catch (error) {
 				reject(error);
@@ -232,6 +230,7 @@ class RoomDAO {
 
 	static getAllRooms(req) {
 		const pipeline = [
+			{ $match: {} },
 			{
 				$lookup: {
 					from: 'users',
@@ -302,7 +301,7 @@ class RoomDAO {
 				const rooms = await Room.aggregate(pipeline).cache({
 					key: req.user.id,
 				});
-				resolve(rooms);
+				resolve(rooms, 'rooms');
 			} catch (error) {
 				reject(error);
 			}
@@ -313,7 +312,7 @@ class RoomDAO {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const room = await Room.findByIdAndDelete(roomId);
-				checkDataExist(room);
+				checkDataExist(room, 'room');
 				resolve();
 			} catch (error) {
 				reject(error);

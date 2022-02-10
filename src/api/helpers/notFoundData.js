@@ -1,7 +1,7 @@
-const checkDataExist = (data) => {
+const checkDataExist = (data, dataName = 'data') => {
     if (!data || data?.length === 0) {
         const error = {
-            message: 'NOT_FOUND',
+            message: `${dataName}_NOT_FOUND`,
             statusCode: 404,
         };
         throw error;
