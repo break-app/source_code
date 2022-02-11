@@ -134,6 +134,28 @@ class UserController {
 			next(error);
 		}
 	}
+
+	static async getMyProfile(req, res, next) {
+		try {
+			const profileResult = await UserDAO.getMyProfile(req.user.id);
+			res.json(profileResult);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	static async updateProfile(req, res, next) {
+		try {
+			const profileResult = await UserDAO.updateProfile(
+				req.user.id,
+				req.body
+			);
+
+			res.json(profileResult);
+		} catch (error) {
+			next(error);
+		}
+	}
 	static async logout(req, res) {
 		try {
 			const userObj = req.user;

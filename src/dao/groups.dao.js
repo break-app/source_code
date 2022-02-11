@@ -43,22 +43,25 @@ class GroupDAO {
 										$expr: { $in: [groupId, '$groups'] },
 									},
 								},
-								{ $sortByCount: '$groups.groupId' },
+								{
+									$group: {
+										_id: '$_id',
+									},
+								},
 							],
 							as: 'members',
 						},
 					},
-					{ $unwind: '$members' },
 					{
 						$project: {
 							name: 1,
 							description: 1,
 							avatar: 1,
-							members: '$members.count',
+							members: { $size: '$members' },
 						},
 					},
 				]).cache({
-					key: groupId,
+					key: `single_group=${groupId}`,
 				});
 				resolve(group);
 			} catch (error) {
@@ -142,25 +145,27 @@ class GroupDAO {
 										},
 									},
 								},
-								{ $sortByCount: '$groups.groupId' },
+								{
+									$group: {
+										_id: '$_id',
+									},
+								},
 							],
 							as: 'members',
 						},
 					},
-					{ $unwind: '$members' },
 					{
 						$project: {
 							name: 1,
 							description: 1,
 							avatar: 1,
-							members: '$members.count',
+							members: { $size: '$members' },
 						},
 					},
-
-					// { $skip: (page - 1) * limit },
-					// { $limit: limit },
+					{ $skip: (page - 1) * limit },
+					{ $limit: limit },
 				]).cache({
-					key: `all_groups page=${page}`,
+					key: `all_groups&page=${page}`,
 				});
 				resolve(groups);
 			} catch (error) {
