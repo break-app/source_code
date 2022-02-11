@@ -62,7 +62,7 @@ class StoreDAO {
 					{ $skip: (page - 1) * limit },
 					{ $limit: limit },
 				]).cache({
-					key: `all_products category=${category_id} page=${page}`,
+					key: `all_products&category=${category_id}&page=${page}`,
 				});
 				resolve(result);
 			} catch (error) {

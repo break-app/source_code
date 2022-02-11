@@ -1,19 +1,21 @@
 const StoreController = require('../controllers/store.controller');
-const cleanCache = require('../middlewares/cleanCache');
+let cleanCache = require('../middlewares/cleanCache');
 
 const router = require('express').Router();
 
-function clearCache(isArrayOrHashKey, start_name) {
-	return (req, res, next) =>
-		cleanCache(req, res, next, isArrayOrHashKey, start_name);
-}
-
 router
 	.route('/addProduct')
-	.post(clearCache([], `all_products`), StoreController.addProduct);
+	.post(
+		(req, res, next) =>
+			cleanCache(`all_products&category=${req.body.category}`, next),
+		StoreController.addProduct
+	);
 router
 	.route('/category')
-	.post(clearCache([], 'all_categories'), StoreController.addCategory)
+	.post(
+		(req, res, next) => cleanCache('all_categories', next),
+		StoreController.addCategory
+	)
 	.get(StoreController.getCategories);
 router
 	.route('/getCategoryProducts/:category_id')

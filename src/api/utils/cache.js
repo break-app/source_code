@@ -90,15 +90,9 @@ mongoose.Aggregate.prototype.exec = async function () {
 };
 
 module.exports = {
-	clearHash(multiple, key) {
-		if (multiple) {
-			client
-				.keys('*')
-				.then((res) =>
-					res.map((r) => r.includes(key) && client.del(r))
-				);
-			return;
-		}
-		client.del(JSON.stringify(key));
+	clearHash(key) {
+		client
+			.keys('*')
+			.then((res) => res.map((r) => r.includes(key) && client.del(r)));
 	},
 };
