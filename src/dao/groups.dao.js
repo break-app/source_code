@@ -2,6 +2,7 @@ const { User, Group } = require('../schemas/users.schema');
 const mongoose = require('mongoose');
 
 const idGenerator = require('../api/helpers/idGenerator');
+const verifyUpdates = require('../api/helpers/verifyUpdates');
 class GroupDAO {
 	/**-----------------------
 	 *  create group --- gruopInfo
@@ -168,6 +169,27 @@ class GroupDAO {
 					key: `all_groups&page=${page}`,
 				});
 				resolve(groups);
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	static updateGroup({ id, data }) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const whiteList = ['name', 'description', 'avatar'];
+				const updateResult = await Group.updateOne(
+					{ _id: id },
+					{ $set: verifyUpdates(data, whiteList) }
+				);
+				if (!updateResult.matchedCount) {
+					reject('group not found');
+				}
+				if (!updateResult.modifiedCount) {
+					reject('please try again later');
+				}
+				resolve({ success: true });
 			} catch (error) {
 				reject(error);
 			}

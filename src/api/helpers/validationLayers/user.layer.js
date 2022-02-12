@@ -9,16 +9,18 @@ const validate = (method) => {
 					.notEmpty()
 					.withMessage('REQUIRED')
 					.bail()
-					.bail()
+					.isLength({ min: 1 })
 					.withMessage('your first name must more than 1 character')
+					.bail()
 					.isString('your first name must be string'),
 				check('last')
 					.trim()
 					.notEmpty()
 					.withMessage('REQUIRED')
 					.bail()
-					.bail()
+					.isLength({ min: 1 })
 					.withMessage('your first name must more than 1 character')
+					.bail()
 					.isString('your first name must be string'),
 				check('age')
 					.notEmpty()
@@ -57,6 +59,24 @@ const validate = (method) => {
 					.withMessage('Invalid Email')
 					.bail()
 					.isString('must be string'),
+			];
+		}
+		case 'loginUser': {
+			return [
+				check('email')
+					.trim()
+					.notEmpty()
+					.withMessage('REQUIRED')
+					.bail()
+					.isEmail()
+					.withMessage('Invalid Email')
+					.bail()
+					.isString('must be string'),
+				check('password')
+					.trim()
+					.notEmpty()
+					.withMessage('REQUIRED')
+					.bail(),
 			];
 		}
 	}

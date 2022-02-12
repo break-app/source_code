@@ -1,7 +1,3 @@
-const uid = function () {
-	return Math.floor(100000 + Math.random() * 900000);
-};
-
 const UserDAO = require('../../../dao/users/users.dao');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -217,24 +213,24 @@ class UserController {
 			next(error);
 		}
 	}
-	static async addVisitor(req, res, next) {
-		try {
-			const { id } = req.user; // id of visitor user
-			const { user_to_visit } = req.body; //  id of user to visit
-			const followersResult = await UserDAO.addVisitor(id, user_to_visit);
+	// static async addVisitor(req, res, next) {
+	// 	try {
+	// 		const { id } = req.user; // id of visitor user
+	// 		const { user_to_visit } = req.body; //  id of user to visit
+	// 		const Result = await UserDAO.addVisitor(id, user_to_visit);
 
-			res.json(followersResult);
-		} catch (error) {
-			next(error);
-		}
-	}
+	// 		res.json(Result);
+	// 	} catch (error) {
+	// 		next(error);
+	// 	}
+	// }
 
 	static async buyProduct(req, res, next) {
 		try {
 			const { id } = req.user;
 
 			/**
-			 * @constant { string } product | the id of the product to buy
+			 * 	@constant { string } product | the id of the product to buy
 			 *  @constant { number } quantity | the number of of product's quantity
 			 **/
 			const { product, quantity } = req.body;
@@ -280,21 +276,19 @@ class UserController {
 		});
 	}
 
-	static convertCurrence(req, res, next) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const { id } = req.user;
-				const { quantity } = req.body;
-				const convertResult = await UserDAO.convertCurrence({
-					user_id: id,
-					quantity,
-				});
-				res.json(convertResult);
-			} catch (error) {
-				reject(next(error));
-			}
-		});
+	static async convertCurrence(req, res, next) {
+		try {
+			const { id } = req.user;
+			const { quantity } = req.body;
+			const convertResult = await UserDAO.convertCurrence({
+				user_id: id,
+				quantity,
+			});
+			res.json(convertResult);
+		} catch (error) {
+			next(error);
+		}
 	}
 }
 
-module.exports = { UserController, User, uid };
+module.exports = { UserController, User };

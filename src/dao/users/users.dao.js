@@ -353,7 +353,9 @@ class UserDAO {
 						followings: { $in: [user_id] },
 					},
 					{ name: 1, avatar: 1 }
-				);
+				).cache({
+					key: `user_followers=${user_id}`,
+				});
 				resolve(getFollowersResult);
 			} catch (error) {
 				reject(error);
@@ -361,25 +363,25 @@ class UserDAO {
 		});
 	}
 
-	/**
-	 *  add user_id to `followings` field in his document
-	 *  @param {string} user_id // the id of visitor user
-	 *  @param {string} user_to_visit // the id of user you want to visit
-	 **/
-	static async addVisitor(user_id, user_to_visit) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				await User.updateOne(
-					{ _id: user_id, visits: { $nin: [user_to_visit] } },
-					{ $push: { visits: user_to_visit } }
-				);
+	// /**
+	//  *  add user_id to `followings` field in his document
+	//  *  @param {string} user_id // the id of visitor user
+	//  *  @param {string} user_to_visit // the id of user you want to visit
+	//  **/
+	// static async addVisitor(user_id, user_to_visit) {
+	// 	return new Promise(async (resolve, reject) => {
+	// 		try {
+	// 			await User.updateOne(
+	// 				{ _id: user_id, visits: { $nin: [user_to_visit] } },
+	// 				{ $push: { visits: user_to_visit } }
+	// 			);
 
-				resolve({ success: true });
-			} catch (error) {
-				reject(error);
-			}
-		});
-	}
+	// 			resolve({ success: true });
+	// 		} catch (error) {
+	// 			reject(error);
+	// 		}
+	// 	});
+	// }
 
 	/**
 	 *  buy product.. either (push) new product or update it

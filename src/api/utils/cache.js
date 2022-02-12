@@ -25,7 +25,7 @@ mongoose.Query.prototype.exec = async function () {
 	// generate a key
 	const key = JSON.stringify(
 		Object.assign({}, this.getQuery(), {
-			collection: this.mongooseCollection.name,
+			collection: this.collation.name,
 		})
 	);
 
@@ -91,6 +91,16 @@ mongoose.Aggregate.prototype.exec = async function () {
 
 module.exports = {
 	clearHash(key) {
+		if (typeof key === 'object') {
+			for (var k in key) {
+				client
+					.keys('*')
+					.then((res) =>
+						res.map((r) => r.includes(k) && client.del(r))
+					);
+			}
+			return;
+		}
 		client
 			.keys('*')
 			.then((res) => res.map((r) => r.includes(key) && client.del(r)));

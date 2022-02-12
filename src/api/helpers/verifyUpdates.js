@@ -4,7 +4,7 @@ const verifyUpdates = (reqBody, validUpdates = []) => {
 	if (!isValidUpdates) {
 		throw { message: 'Invalid Updates!', statusCode: 400 };
 	}
-	return 1;
+	return reqBody;
 };
 
 module.exports = verifyUpdates;

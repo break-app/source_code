@@ -58,6 +58,19 @@ class GroupController {
 			next(error);
 		}
 	}
+
+	static async upateGroup(req, res, next) {
+		try {
+			const result = await GroupDAO.updateGroup({
+				id: req.params.id,
+				data: req.body,
+			});
+
+			res.json(result);
+		} catch (error) {
+			next(error);
+		}
+	}
 }
 
 module.exports = GroupController;
