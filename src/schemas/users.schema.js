@@ -29,6 +29,7 @@ const usersSchema = new mongoose.Schema(
 		_id: {
 			type: mongoose.Schema.Types.String,
 			required: [true, 'document must has an id'],
+			// text: true,
 		},
 		name: {
 			first: {
@@ -38,6 +39,7 @@ const usersSchema = new mongoose.Schema(
 					2,
 					'your first name must be more than one character',
 				],
+				text: true,
 			},
 			last: {
 				type: String,
@@ -46,6 +48,7 @@ const usersSchema = new mongoose.Schema(
 					2,
 					'your last name must be more than one character',
 				],
+				text: true,
 			},
 		},
 		age: {
@@ -71,6 +74,7 @@ const usersSchema = new mongoose.Schema(
 			type: String,
 			required: [true, 'this filed is required'],
 			unique: [true, 'this field is unique'],
+			text: true,
 		},
 
 		password: {
@@ -80,7 +84,7 @@ const usersSchema = new mongoose.Schema(
 		},
 		gender: {
 			type: String,
-			enum: ['male', 'female', 'other'],
+			enum: ['Male', 'Female', 'Non-binary'],
 			required: [true, 'this field is required'],
 		},
 		wallet: {
@@ -126,6 +130,10 @@ const usersSchema = new mongoose.Schema(
 				},
 			},
 		],
+		country: {
+			type: String,
+			required: true,
+		},
 	},
 	{ timestamps: true }
 );
@@ -139,6 +147,7 @@ const groupsSchema = new mongoose.Schema(
 		name: {
 			type: String,
 			required: [true, 'this field is required'],
+			text: true,
 		},
 		avatar: {
 			type: String,

@@ -14,6 +14,7 @@ const rooms = require('./api/routes/rooms.route');
 const store = require('./api/routes/store.route');
 const settings = require('./api/routes/settings.route');
 const groups = require('./api/routes/groups.route');
+const search = require('./api/routes/search.route');
 
 app.use(cors());
 process.env.NODE_ENV !== 'prod' && app.use(morgan('dev'));
@@ -29,6 +30,7 @@ app.use('/api/v1/rooms', rooms);
 app.use('/api/v1/store', store);
 app.use('/api/v1/settings', settings);
 app.use('/api/v1/groups', groups);
+app.use('/api/v1/search', search);
 
 /**======================
  *    ?Hanle DB Errors
