@@ -61,7 +61,7 @@ class UserController {
 			const registerResult = await UserDAO.addUser(userInfo);
 			res.status(201).json({
 				resutl: {
-					name: `${registerResult.name.first} ${registerResult.name.last}`,
+					name: `${registerResult.first_name} ${registerResult.last_name}`,
 					email: registerResult.email,
 					avatar: registerResult.avatar,
 					golds: registerResult.wallet.golds,

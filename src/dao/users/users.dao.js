@@ -228,11 +228,9 @@ class UserDAO {
 				const updateResult = await User.updateOne(
 					{ _id: userId },
 					{
-						$set: verifyUpdates(profileInfo, whiteList) && {
-							'name.first': profileInfo?.first_name,
-							'name.last': profileInfo?.last_name,
-							...profileInfo,
-						},
+						$set:
+							verifyUpdates(profileInfo, whiteList) &&
+							profileInfo,
 					}
 				);
 				if (!updateResult.matchedCount) {

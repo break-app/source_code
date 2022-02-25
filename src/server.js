@@ -13,7 +13,7 @@ const usersStatistics = require('./api/routes/users/users.statistics.route');
 const rooms = require('./api/routes/rooms.route');
 const store = require('./api/routes/store.route');
 const settings = require('./api/routes/settings.route');
-const groups = require('./api/routes/groups.route');
+const agency = require('./api/routes/agency.route');
 const search = require('./api/routes/search.route');
 
 app.use(cors());
@@ -29,7 +29,7 @@ app.use('/api/v1/statistics/users', usersStatistics);
 app.use('/api/v1/rooms', rooms);
 app.use('/api/v1/store', store);
 app.use('/api/v1/settings', settings);
-app.use('/api/v1/groups', groups);
+app.use('/api/v1/agency', agency);
 app.use('/api/v1/search', search);
 
 /**======================

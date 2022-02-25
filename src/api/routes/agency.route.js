@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const GroupController = require('../controllers/groups.controller');
+const AgencyController = require('../controllers/agency.controller');
 const validate = require('../helpers/validationLayers/groups.layer');
 
 const auth = require('../middlewares/auth.middleware');
@@ -14,12 +14,12 @@ router
 		validate('createGroup'),
 		catchValidationError,
 		(req, res, next) => cleanCache('all_groups', next),
-		GroupController.createGroup
+		AgencyController.createAgnecy
 	);
 
-router.route('/get/one/:groupId').get(GroupController.getGroup);
+router.route('/get/one/:groupId').get(AgencyController.getGroup);
 
-router.route('/get/all').get(GroupController.getGroups);
+router.route('/get/all').get(AgencyController.getGroups);
 
 router
 	.route('/join')
@@ -27,7 +27,7 @@ router
 		auth,
 		(req, res, next) =>
 			cleanCache(`single_group=${req.body.groupId}`, next),
-		GroupController.joinGroup
+		AgencyController.joinGroup
 	);
 
 router
@@ -36,7 +36,7 @@ router
 		auth,
 		(req, res, next) =>
 			cleanCache(`single_group=${req.body.groupId}`, next),
-		GroupController.leaveGroup
+		AgencyController.leaveGroup
 	);
 
 router
@@ -45,7 +45,7 @@ router
 		auth,
 		(req, res, next) =>
 			cleanCache([`single_group=${req.params.id}`, `all_groups`], next),
-		GroupController.upateGroup
+		AgencyController.upateGroup
 	);
 
 module.exports = router;

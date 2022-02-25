@@ -29,28 +29,21 @@ const usersSchema = new mongoose.Schema(
 		_id: {
 			type: mongoose.Schema.Types.String,
 			required: [true, 'document must has an id'],
-			// text: true,
 		},
-		name: {
-			first: {
-				type: String,
-				required: [true, 'this field is required'],
-				minlength: [
-					2,
-					'your first name must be more than one character',
-				],
-				text: true,
-			},
-			last: {
-				type: String,
-				required: [true, 'this filed is required'],
-				minlength: [
-					2,
-					'your last name must be more than one character',
-				],
-				text: true,
-			},
+
+		first_name: {
+			type: String,
+			required: [true, 'this field is required'],
+			minlength: [2, 'your first name must be more than one character'],
+			text: true,
 		},
+		last_name: {
+			type: String,
+			required: [true, 'this filed is required'],
+			minlength: [2, 'your last name must be more than one character'],
+			text: true,
+		},
+
 		age: {
 			type: Number,
 			required: [true, 'this field is required'],
@@ -76,7 +69,6 @@ const usersSchema = new mongoose.Schema(
 			unique: [true, 'this field is unique'],
 			text: true,
 		},
-
 		password: {
 			type: String,
 			required: [true, 'this filed is required'],
@@ -108,9 +100,16 @@ const usersSchema = new mongoose.Schema(
 			default: 1,
 			min: [1, 'level cannot be less than 1'],
 		},
-		groups: [{ type: mongoose.Schema.Types.String, ref: 'Group' }],
+		agency: {
+			id: {
+				type: mongoose.Schema.Types.String,
+				ref: 'Agency',
+			},
+			total_balance: {
+				type: Number,
+			},
+		},
 		followings: [{ type: mongoose.Schema.Types.String, ref: 'User' }],
-		rating: { type: Number, default: 0 },
 		gives: [givingSchema],
 		visits: [
 			{
@@ -134,11 +133,14 @@ const usersSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		unique_id: {
+			type: String,
+		},
 	},
 	{ timestamps: true }
 );
 
-const groupsSchema = new mongoose.Schema(
+const agencySchema = new mongoose.Schema(
 	{
 		_id: {
 			type: mongoose.Schema.Types.String,
@@ -154,10 +156,14 @@ const groupsSchema = new mongoose.Schema(
 			default: 'group picture',
 		},
 		description: String,
+		total_balance: {
+			type: Number,
+			default: 0,
+		},
 	},
 	{ timestamps: true }
 );
 
 const User = mongoose.model('User', usersSchema);
-const Group = mongoose.model('Group', groupsSchema);
-module.exports = { User, Group };
+const Agency = mongoose.model('Agency', agencySchema);
+module.exports = { User, Agency };

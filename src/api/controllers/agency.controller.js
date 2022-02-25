@@ -1,17 +1,17 @@
-const GroupDAO = require('../../dao/groups.dao');
+const AgencyDAO = require('../../dao/agency.dao');
 
-class GroupController {
+class AgencyController {
 	/**-----------------------
-	 *  create group
-	 *  get group
-	 *  get groups
-	 *  join group
-	 *  leave group
+	 *  create Agency
+	 *  get Agency
+	 *  get Agencies
+	 *  join Agency
+	 *  leave Agency
 	 *------------------------**/
 
-	static async createGroup(req, res, next) {
+	static async createAgnecy(req, res, next) {
 		try {
-			const createResult = await GroupDAO.createGroup(req.body);
+			const createResult = await AgencyDAO.createAgnecy(req.body);
 			res.json(createResult);
 		} catch (error) {
 			next(error);
@@ -21,7 +21,7 @@ class GroupController {
 	static async getGroup(req, res, next) {
 		try {
 			const { groupId } = req.params;
-			const getResult = await GroupDAO.getGroup(groupId);
+			const getResult = await AgencyDAO.getGroup(groupId);
 			res.json(getResult);
 		} catch (error) {
 			next(error);
@@ -32,7 +32,7 @@ class GroupController {
 		try {
 			const userId = req.user.id;
 			const { groupId } = req.body;
-			const joinResult = await GroupDAO.joinGroup({ groupId, userId });
+			const joinResult = await AgencyDAO.joinGroup({ groupId, userId });
 			res.json(joinResult);
 		} catch (error) {
 			next(error);
@@ -43,7 +43,7 @@ class GroupController {
 		try {
 			const userId = req.user.id;
 			const { groupId } = req.body;
-			const leaveResult = await GroupDAO.leaveGroup({ groupId, userId });
+			const leaveResult = await AgencyDAO.leaveGroup({ groupId, userId });
 			res.json(leaveResult);
 		} catch (error) {
 			next(error);
@@ -52,7 +52,7 @@ class GroupController {
 
 	static async getGroups(req, res, next) {
 		try {
-			const Result = await GroupDAO.getGroups(req.query.page);
+			const Result = await AgencyDAO.getGroups(req.query.page);
 			res.json(Result);
 		} catch (error) {
 			next(error);
@@ -61,7 +61,7 @@ class GroupController {
 
 	static async upateGroup(req, res, next) {
 		try {
-			const result = await GroupDAO.updateGroup({
+			const result = await AgencyDAO.updateGroup({
 				id: req.params.id,
 				data: req.body,
 			});
@@ -73,4 +73,4 @@ class GroupController {
 	}
 }
 
-module.exports = GroupController;
+module.exports = AgencyController;

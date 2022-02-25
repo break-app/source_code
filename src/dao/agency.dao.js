@@ -1,23 +1,23 @@
-const { User, Group } = require('../schemas/users.schema');
+const { User, Agency } = require('../schemas/users.schema');
 const mongoose = require('mongoose');
 
 const idGenerator = require('../api/helpers/idGenerator');
 const verifyUpdates = require('../api/helpers/verifyUpdates');
-class GroupDAO {
+class AgencyDAO {
 	/**-----------------------
-	 *  create group --- gruopInfo
-	 *  get group --- groupId
-	 *  get groups
-	 *  join group -- {groupId, userId}
-	 *  leave group -- {groupId, userId}
+	 *  create Agency --- gruopInfo
+	 *  get Agency --- AgencyId
+	 *  get Agencys
+	 *  join Agency -- {AgencyId, userId}
+	 *  leave Agency -- {AgencyId, userId}
 	 *------------------------**/
 
-	static createGroup(groupInfo) {
+	static createAgnecy(agencyInfo) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const { name, description, avatar } = groupInfo;
+				const { name, description, avatar } = agencyInfo;
 				resolve(
-					await Group.create({
+					await Agency.create({
 						name,
 						description,
 						avatar,
@@ -197,4 +197,4 @@ class GroupDAO {
 	}
 }
 
-module.exports = GroupDAO;
+module.exports = AgencyDAO;

@@ -4,7 +4,7 @@ const validate = (method) => {
 	switch (method) {
 		case 'addUser': {
 			return [
-				check('first')
+				check('first_name')
 					.trim()
 					.notEmpty()
 					.withMessage('REQUIRED')
@@ -13,7 +13,7 @@ const validate = (method) => {
 					.withMessage('your first name must more than 1 character')
 					.bail()
 					.isString('your first name must be string'),
-				check('last')
+				check('last_name')
 					.trim()
 					.notEmpty()
 					.withMessage('REQUIRED')
