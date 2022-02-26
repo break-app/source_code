@@ -18,55 +18,71 @@ class AgencyController {
 		}
 	}
 
-	static async getGroup(req, res, next) {
+	static async createReqJoinFromUserToAgency(req, res, next) {
 		try {
-			const { groupId } = req.params;
-			const getResult = await AgencyDAO.getGroup(groupId);
-			res.json(getResult);
-		} catch (error) {
-			next(error);
-		}
-	}
-
-	static async joinGroup(req, res, next) {
-		try {
-			const userId = req.user.id;
-			const { groupId } = req.body;
-			const joinResult = await AgencyDAO.joinGroup({ groupId, userId });
-			res.json(joinResult);
-		} catch (error) {
-			next(error);
-		}
-	}
-
-	static async leaveGroup(req, res, next) {
-		try {
-			const userId = req.user.id;
-			const { groupId } = req.body;
-			const leaveResult = await AgencyDAO.leaveGroup({ groupId, userId });
-			res.json(leaveResult);
-		} catch (error) {
-			next(error);
-		}
-	}
-
-	static async getGroups(req, res, next) {
-		try {
-			const Result = await AgencyDAO.getGroups(req.query.page);
-			res.json(Result);
-		} catch (error) {
-			next(error);
-		}
-	}
-
-	static async upateGroup(req, res, next) {
-		try {
-			const result = await AgencyDAO.updateGroup({
-				id: req.params.id,
-				data: req.body,
-			});
-
+			const result = await AgencyDAO.createReqJoinFromUserToAgency(
+				req.params.agencyId,
+				req.user.id
+			);
 			res.json(result);
+		} catch (error) {
+			next(error);
+		}
+	}
+	static async getAgencyJoinReqs(req, res, next) {
+		try {
+			const result = await AgencyDAO.getAgencyJoinReqs(
+				req.params.agencyId
+			);
+			res.send(result);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	static async approveAgencyJoinReqs(req, res, next) {
+		try {
+			const result = await AgencyDAO.approveAgencyJoinReqs(
+				req.params.agencyId,
+				req.body.userId
+			);
+			res.send(result);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	static async getAgencyMembers(req, res, next) {
+		try {
+			const result = await AgencyDAO.getAgencyMembers(
+				req.params.agencyId
+			);
+			res.send(result);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	static async sendGiftFromUserToAgencyMember(req, res, next) {
+		try {
+			const result = await AgencyDAO.sendGiftFromUserToAgencyMember({
+				userId: req.user.id,
+				memberId: req.body.memberId,
+				giftId: req.body.giftId,
+				giftQty: req.body.giftQty,
+			});
+			res.send(result);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	static async awardAgencyMembers(req, res, next) {
+		try {
+			const result = await AgencyDAO.awardAgencyMembers(
+				req.params.agencyId
+			);
+			res.send(result);
 		} catch (error) {
 			next(error);
 		}

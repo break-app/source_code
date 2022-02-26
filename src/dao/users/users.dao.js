@@ -403,7 +403,6 @@ class UserDAO {
 				// product doesn't exists in database
 				if (!productDB) {
 					reject(new Error('this product may be deleted'));
-					return;
 				}
 
 				// total price of buy process

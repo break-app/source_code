@@ -3,6 +3,31 @@ const mongoose = require('mongoose');
 
 const idGenerator = require('../api/helpers/idGenerator');
 const verifyUpdates = require('../api/helpers/verifyUpdates');
+const { Store } = require('../schemas/store.schema');
+const Settings = require('../schemas/settings.schema');
+const res = require('express/lib/response');
+
+class AgencyHelper {
+	static async RetrieveGiftToUser({ userId, giftId, giftQty }) {
+		const result = await User.updateOne(
+			{
+				_id: userId,
+				products: { $elemMatch: { id: giftId } },
+			},
+			{
+				$inc: {
+					'products.$.quantity': giftQty,
+				},
+			}
+		);
+		if (!result.modifiedCount) {
+			throw new Error(
+				'Error occured when retrieve your gift, please contact support'
+			);
+		}
+		throw new Error('Problem occured while sending your gift');
+	}
+}
 class AgencyDAO {
 	/**-----------------------
 	 *  create Agency --- gruopInfo
@@ -16,12 +41,18 @@ class AgencyDAO {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const { name, description, avatar } = agencyInfo;
+				const settings = await Settings.findOne({}, { agency: 1 });
 				resolve(
 					await Agency.create({
 						name,
 						description,
 						avatar,
 						_id: idGenerator(),
+						total_balance: {
+							expire_date: Date.now(),
+							current_value: 0,
+							target_value: settings.agency.agencyTarget,
+						},
 					})
 				);
 			} catch (error) {
@@ -30,68 +61,87 @@ class AgencyDAO {
 		});
 	}
 
-	static getGroup(groupId) {
+	static createReqJoinFromUserToAgency(agencyId, userId) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const group = await Group.aggregate([
-					{ $match: { _id: groupId } },
+				const agency = await User.updateOne(
+					{ _id: userId },
 					{
-						$lookup: {
-							from: 'users',
-							pipeline: [
-								{
-									$match: {
-										$expr: { $in: [groupId, '$groups'] },
-									},
-								},
-								{
-									$group: {
-										_id: '$_id',
-									},
-								},
-							],
-							as: 'members',
+						$set: {
+							agency: {
+								id: agencyId,
+								status: 'pending',
+							},
+						},
+					}
+				);
+				if (!agency.matchedCount) {
+					reject(new Error('user not found'));
+				}
+				if (!agency.modifiedCount) {
+					reject(
+						new Error(
+							'your request not completed, please try again later.'
+						)
+					);
+				}
+				resolve({ success: true });
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	static getAgencyJoinReqs(agencyId) {
+		return new Promise(async (resolve, reject) => {
+			console.log(agencyId);
+			try {
+				const reqs = await User.aggregate([
+					{
+						$match: {
+							'agency.id': agencyId,
+							'agency.status': 'pending',
 						},
 					},
 					{
 						$project: {
-							name: 1,
-							description: 1,
+							name: {
+								$concat: ['$first_name', ' ', '$last_name'],
+							},
 							avatar: 1,
-							members: { $size: '$members' },
 						},
 					},
-				]).cache({
-					key: `single_group=${groupId}`,
-				});
-				resolve(group);
+				]);
+				if (!reqs?.length) {
+					reject(new Error('No Requests'));
+				}
+				resolve({ result: reqs });
 			} catch (error) {
 				reject(error);
 			}
 		});
 	}
 
-	static joinGroup({ groupId, userId }) {
+	static approveAgencyJoinReqs(agencyId, userId) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const user = await User.updateOne(
+				const agency = await User.updateOne(
+					{ _id: userId, 'agency.id': agencyId },
 					{
-						_id: userId,
-						groups: { $nin: [groupId] },
-					},
-					{
-						$push: {
-							groups: groupId,
+						$set: {
+							'agency.status': 'joined',
 						},
 					}
 				);
-				if (!user.matchedCount) {
-					reject(new Error('you already joined to this group'));
-					return;
+				if (!agency.matchedCount) {
+					reject(new Error('user not found'));
 				}
-				if (!user.modifiedCount) {
-					reject(new Error('something went wrong'));
-					return;
+				if (!agency.modifiedCount) {
+					reject(
+						new Error(
+							'your request not completed, please try again later.'
+						)
+					);
 				}
 				resolve({ success: true });
 			} catch (error) {
@@ -100,96 +150,223 @@ class AgencyDAO {
 		});
 	}
 
-	static leaveGroup({ groupId, userId }) {
+	static getAgencyMembers(agencyId) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const user = await User.updateOne(
+				const members = await User.aggregate([
 					{
-						_id: userId,
-						groups: { $in: [groupId] },
-					},
-					{
-						$pull: {
-							groups: groupId,
-						},
-					}
-				);
-				if (!user.matchedCount) {
-					reject(new Error('you are not join to this group'));
-					return;
-				}
-				if (!user.modifiedCount) {
-					reject(new Error('something went wrong'));
-					return;
-				}
-				resolve({ success: true });
-			} catch (error) {
-				reject(error);
-			}
-		});
-	}
-
-	static getGroups(page) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const limit = 10;
-				const groups = await Group.aggregate([
-					{
-						$lookup: {
-							from: 'users',
-							let: { groupId: '$_id' },
-							pipeline: [
-								{
-									$match: {
-										$expr: {
-											$in: ['$$groupId', '$groups'],
-										},
-									},
-								},
-								{
-									$group: {
-										_id: '$_id',
-									},
-								},
-							],
-							as: 'members',
+						$match: {
+							'agency.id': agencyId,
+							'agency.status': 'joined',
 						},
 					},
 					{
 						$project: {
-							name: 1,
-							description: 1,
+							name: {
+								$concat: ['$first_name', ' ', '$last_name'],
+							},
 							avatar: 1,
-							members: { $size: '$members' },
+							email: 1,
 						},
 					},
-					{ $skip: (page - 1) * limit },
-					{ $limit: limit },
-				]).cache({
-					key: `all_groups&page=${page}`,
-				});
-				resolve(groups);
+				]);
+				if (!members.length) {
+					reject(new Error('No Members'));
+				}
+				resolve({ result: members });
 			} catch (error) {
 				reject(error);
 			}
 		});
 	}
 
-	static updateGroup({ id, data }) {
+	static addMemberToAgencyByAgencyAdmin(agencyId, userId) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const whiteList = ['name', 'description', 'avatar'];
-				const updateResult = await Group.updateOne(
-					{ _id: id },
-					{ $set: verifyUpdates(data, whiteList) }
+				const newMember = await User.updateOne(
+					{ _id: userId },
+					{
+						$set: {
+							'agency.id': agencyId,
+							'agency.status': 'joined',
+						},
+					}
 				);
-				if (!updateResult.matchedCount) {
-					reject('group not found');
+				if (!newMember.matchedCount) {
+					reject(new Error('user not found'));
 				}
-				if (!updateResult.modifiedCount) {
-					reject('please try again later');
+				if (!newMember.modifiedCount) {
+					reject(new Error('try again later'));
 				}
 				resolve({ success: true });
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	static sendGiftFromUserToAgencyMember({
+		userId,
+		memberId,
+		giftId,
+		giftQty,
+	}) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				//* send gift to member
+				// find gift price
+				// find settings & get golds_beans equation
+				// check if the user has this gift or not
+				// check if the user has quantity >= giftQty
+				// convert price of gift to beans
+				// find member
+				// increase his total_balance by beans
+				// increase agency total_balance by beans
+
+				let gift_price;
+				let beans_golds;
+				let totalBeans;
+
+				// fetch git & settings information
+				let [gift, settings] = await Promise.all([
+					await Store.findById(giftId, { price: 1 }),
+					Settings.findOne({}, { beans_golds: 1, _id: 0 }),
+				]);
+
+				// check whether gift or settings are fetched well
+				if (!gift || !settings) {
+					reject(
+						new Error(
+							'your request not completed, please try again later'
+						)
+					);
+				}
+
+				// re-assign gift_price | beans_golds 'equation'
+				gift_price = gift.price;
+				beans_golds = settings.beans_golds;
+				// calculate the totalBeans that I will use in other operations
+				totalBeans = beans_golds * gift_price * giftQty;
+
+				// check if user has the ptoduct and 'specific quantity' that he want to send as a gift
+				const userCheck = User.updateOne(
+					{
+						_id: userId,
+						products: {
+							$elemMatch: {
+								id: giftId,
+								quantity: { $gte: giftQty },
+							},
+						},
+					},
+					// if above is true (the user already has the product and quantity),
+					// then update his wallet and product quantity
+					{
+						$inc: {
+							'wallet.spends': totalBeans,
+							'products.$.quantity': -giftQty,
+						},
+					}
+				);
+
+				const updateMemberBalance = User.findOneAndUpdate(
+					{ _id: memberId },
+					{
+						$inc: {
+							'agency.total_balance': totalBeans,
+						},
+					}
+				);
+
+				// execute previous operations
+				const [userCheckResult, updateMemberBalanceResult] =
+					await Promise.all([userCheck, updateMemberBalance]);
+
+				// check if all things are well
+				if (!userCheckResult.matchedCount) {
+					reject(new Error('you have no enough gifts quantity'));
+				}
+				if (!userCheckResult.modifiedCount) {
+					reject(
+						new Error(
+							'your request not completed, please try again later'
+						)
+					);
+				}
+
+				// check if the member already received the gift
+				if (!updateMemberBalanceResult) {
+					// if not
+					// retrieve the gift back to the user
+					reject(
+						await AgencyHelper.RetrieveGiftToUser({
+							userId,
+							giftId,
+							giftQty,
+						})
+					);
+				}
+
+				// and finally
+				// update agency `total_balance`
+				await Agency.updateOne(
+					{ _id: updateMemberBalanceResult.agency.id },
+					{ $inc: { 'total_balance.current_value': totalBeans } }
+				);
+
+				resolve({ success: true });
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	static awardAgencyMembers(agencyId) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const [settings] = await Promise.all([Settings.findOne({})]);
+				if (!settings) {
+					reject(new Error('your request not completed'));
+				}
+
+				const agency = await Agency.findOne({
+					_id: agencyId,
+					$expr: {
+						$gte: ['$total_balance.expire_date', Date.now()],
+					},
+				});
+
+				if (!agency) {
+					let date = new Date();
+					date.setDate(date.getDate());
+					let new_expire_date = new Date();
+					new_expire_date.setDate(new_expire_date.getDate() + 30);
+					await Agency.updateOne(
+						{ _id: agencyId },
+						{
+							$set: {
+								'total_balance.expire_date': new_expire_date,
+							},
+						}
+					);
+					reject(new Error('Sorry, you exceeded the limit date'));
+				}
+				if (
+					agency.total_balance.current_value <
+					settings.agency.agencyTarget
+				) {
+					reject(
+						new Error(
+							'The current balalnce is less than The target balance'
+						)
+					);
+				}
+
+				let agencyTotalBalance = agency.total_balance.current_value;
+				let totalBalanceAfterDiscount =
+					agencyTotalBalance - agencyTotalBalance * 0.1;
+
+				resolve({ agency });
 			} catch (error) {
 				reject(error);
 			}

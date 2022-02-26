@@ -22,6 +22,11 @@ const validate = (method) => {
 				check('avatar').isString('invalid image').bail(),
 			];
 		}
+		// case 'createReqJoinFromUserToJoin':{
+		// 	return [
+		// 		check('')
+		// 	]
+		// }
 	}
 };
 module.exports = validate;

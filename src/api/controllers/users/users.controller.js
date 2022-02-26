@@ -50,15 +50,15 @@ class UserController {
 	static async register(req, res, next) {
 		try {
 			let userFromBody = req.body;
-			const userInfo = {
-				...userFromBody,
-				password: await hashPassword(userFromBody.password),
-				name: {
-					first: userFromBody.first,
-					last: userFromBody.last,
-				},
-			};
-			const registerResult = await UserDAO.addUser(userInfo);
+			// const userInfo = {
+			// 	...userFromBody,
+			// 	// password: await hashPassword(userFromBody.password),
+			// 	name: {
+			// 		first: userFromBody.first,
+			// 		last: userFromBody.last,
+			// 	},
+			// };
+			const registerResult = await UserDAO.addUser(userFromBody);
 			res.status(201).json({
 				resutl: {
 					name: `${registerResult.first_name} ${registerResult.last_name}`,

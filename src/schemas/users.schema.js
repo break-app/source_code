@@ -1,3 +1,4 @@
+const bcryptjs = require('bcryptjs');
 const mongoose = require('mongoose');
 
 const givingSchema = new mongoose.Schema(
@@ -105,8 +106,14 @@ const usersSchema = new mongoose.Schema(
 				type: mongoose.Schema.Types.String,
 				ref: 'Agency',
 			},
+			status: {
+				type: String,
+				enum: ['joined', 'refused', 'pending'],
+				default: 'pending',
+			},
 			total_balance: {
 				type: Number,
+				default: 0,
 			},
 		},
 		followings: [{ type: mongoose.Schema.Types.String, ref: 'User' }],
@@ -157,13 +164,33 @@ const agencySchema = new mongoose.Schema(
 		},
 		description: String,
 		total_balance: {
-			type: Number,
-			default: 0,
+			expire_date: {
+				type: Date,
+				default: Date.now(),
+			},
+			current_value: {
+				type: Number,
+				default: 0,
+			},
+			target_value: {
+				type: Number,
+				default: 0,
+			},
 		},
 	},
 	{ timestamps: true }
 );
 
+// Hash password
+usersSchema.pre('save', async function (next) {
+	if (!this.isModified('password')) {
+		next();
+	}
+
+	const salt = await bcryptjs.genSalt(10);
+	this.password = await bcryptjs.hash(this.password, salt);
+	next();
+});
 const User = mongoose.model('User', usersSchema);
 const Agency = mongoose.model('Agency', agencySchema);
 module.exports = { User, Agency };

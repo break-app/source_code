@@ -12,6 +12,12 @@ const settingsSchema = new mongoose.Schema({
 			required: [true, 'this field is required'],
 		},
 	},
+	agency: {
+		agencyTarget: {
+			type: Number,
+			required: [true, 'this field is required'],
+		},
+	},
 });
 
 const Settings = mongoose.model('Settings', settingsSchema);
