@@ -2,8 +2,6 @@ const UserDAO = require('../../../dao/users/users.dao');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const hashPassword = async (password) => await bcrypt.hash(password, 10);
-
 class User {
 	constructor({ name, age, avatar, email, password, gender, id } = {}) {
 		this.name = name;
@@ -50,14 +48,7 @@ class UserController {
 	static async register(req, res, next) {
 		try {
 			let userFromBody = req.body;
-			// const userInfo = {
-			// 	...userFromBody,
-			// 	// password: await hashPassword(userFromBody.password),
-			// 	name: {
-			// 		first: userFromBody.first,
-			// 		last: userFromBody.last,
-			// 	},
-			// };
+
 			const registerResult = await UserDAO.addUser(userFromBody);
 			res.status(201).json({
 				resutl: {
@@ -69,7 +60,6 @@ class UserController {
 			});
 		} catch (error) {
 			next(error);
-			// res.status(500).json({ error });
 		}
 	}
 	static async login(req, res) {
@@ -113,9 +103,7 @@ class UserController {
 			}
 			res.json({ auth_token: user.encoded(), info: user.toJson() });
 		} catch (error) {
-			console.log(error);
-			res.status(400).json({ error });
-			return;
+			next(error);
 		}
 	}
 	static async getUserProfile(req, res, next) {

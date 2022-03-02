@@ -1,10 +1,10 @@
-const { User, Agency } = require('../schemas/users.schema');
+const { User, Agency } = require('../../schemas/users.schema');
 const mongoose = require('mongoose');
 
-const idGenerator = require('../api/helpers/idGenerator');
-const verifyUpdates = require('../api/helpers/verifyUpdates');
-const { Store } = require('../schemas/store.schema');
-const Settings = require('../schemas/settings.schema');
+const idGenerator = require('../../api/helpers/idGenerator');
+const verifyUpdates = require('../../api/helpers/verifyUpdates');
+const { Store } = require('../../schemas/store.schema');
+const Settings = require('../../schemas/settings.schema');
 const res = require('express/lib/response');
 
 class AgencyHelper {
@@ -48,11 +48,6 @@ class AgencyDAO {
 						description,
 						avatar,
 						_id: idGenerator(),
-						total_balance: {
-							expire_date: Date.now(),
-							current_value: 0,
-							target_value: settings.agency.agencyTarget,
-						},
 					})
 				);
 			} catch (error) {
@@ -324,36 +319,29 @@ class AgencyDAO {
 	static awardAgencyMembers(agencyId) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const [settings] = await Promise.all([Settings.findOne({})]);
-				if (!settings) {
-					reject(new Error('your request not completed'));
-				}
-
-				const agency = await Agency.findOne({
+				let agency;
+				let user;
+				agency = await Agency.findOne({
 					_id: agencyId,
-					$expr: {
-						$gte: ['$total_balance.expire_date', Date.now()],
-					},
+					$expr: { $gte: ['$total_balance.expire_date', Date.now()] },
 				});
-
 				if (!agency) {
-					let date = new Date();
-					date.setDate(date.getDate());
-					let new_expire_date = new Date();
-					new_expire_date.setDate(new_expire_date.getDate() + 30);
 					await Agency.updateOne(
 						{ _id: agencyId },
 						{
 							$set: {
-								'total_balance.expire_date': new_expire_date,
+								'total_balance.expire_date': new Date().setDate(
+									new Date().getDate() + 30
+								),
 							},
 						}
 					);
 					reject(new Error('Sorry, you exceeded the limit date'));
 				}
+
 				if (
 					agency.total_balance.current_value <
-					settings.agency.agencyTarget
+					agency.total_balance.target_value
 				) {
 					reject(
 						new Error(
@@ -362,11 +350,71 @@ class AgencyDAO {
 					);
 				}
 
-				let agencyTotalBalance = agency.total_balance.current_value;
-				let totalBalanceAfterDiscount =
-					agencyTotalBalance - agencyTotalBalance * 0.1;
+				agency = Agency.aggregate([
+					{
+						$match: {
+							_id: String(agencyId),
+						},
+					},
+					{
+						$set: {
+							'wallet.beans': {
+								$add: [
+									'$wallet.beans',
+									{
+										$multiply: [
+											'$total_balance.current_value',
+											0.1,
+										],
+									},
+								],
+							},
+						},
+					},
+					{
+						$merge: {
+							into: {
+								db: 'break_app',
+								coll: 'agencies',
+							},
+							on: '_id',
+						},
+					},
+				]);
 
-				resolve({ agency });
+				user = User.aggregate([
+					{ $match: { 'agency.id': agencyId } },
+					{
+						$set: {
+							'wallet.beans': {
+								$add: [
+									'$wallet.beans',
+									{
+										$subtract: [
+											'$agency.total_balance',
+											{
+												$multiply: [
+													'$agency.total_balance',
+													0.1,
+												],
+											},
+										],
+									},
+								],
+							},
+						},
+					},
+					{
+						$merge: {
+							into: { db: 'break_app', coll: 'users' },
+							on: '_id',
+						},
+					},
+				]);
+
+				await Promise.all([agency, user]);
+
+				resolve({ success: true });
 			} catch (error) {
 				reject(error);
 			}

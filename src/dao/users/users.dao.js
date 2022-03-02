@@ -472,7 +472,7 @@ class UserDAO {
 								return;
 							}
 							// that means user's spends doesn't greater than or equal settings.level_req.spends yet
-							resolve(res);
+							resolve({ success: true });
 						}));
 					}
 

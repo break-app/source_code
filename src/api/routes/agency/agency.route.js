@@ -1,10 +1,10 @@
 const { Router } = require('express');
-const AgencyController = require('../controllers/agency.controller');
-const validate = require('../helpers/validationLayers/agency.layer');
+const AgencyController = require('../../controllers/agency/agency.controller');
+const validate = require('../../helpers/validationLayers/agency.layer');
 
-const auth = require('../middlewares/auth.middleware');
-var cleanCache = require('../middlewares/cleanCache');
-const { catchValidationError } = require('../middlewares/validationError');
+const auth = require('../../middlewares/auth.middleware');
+var cleanCache = require('../../middlewares/cleanCache');
+const { catchValidationError } = require('../../middlewares/validationError');
 
 const router = Router();
 
@@ -24,7 +24,7 @@ router
 	.route('/getAgencyJoinReqs/:agencyId')
 	.get(AgencyController.getAgencyJoinReqs);
 router
-	.route('/approveAgencyJoinReqs/:agencyId')
+	.route('/approveAgencyJoinReq/:agencyId')
 	.put(AgencyController.approveAgencyJoinReqs);
 router
 	.route('/getAgencyMembers/:agencyId')

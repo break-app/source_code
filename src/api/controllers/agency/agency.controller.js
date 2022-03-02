@@ -1,4 +1,4 @@
-const AgencyDAO = require('../../dao/agency.dao');
+const AgencyDAO = require('../../../dao/agency/agency.dao');
 
 class AgencyController {
 	/**-----------------------

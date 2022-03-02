@@ -1,5 +1,6 @@
 const bcryptjs = require('bcryptjs');
 const mongoose = require('mongoose');
+const Settings = require('./settings.schema');
 
 const givingSchema = new mongoose.Schema(
 	{
@@ -52,7 +53,7 @@ const usersSchema = new mongoose.Schema(
 		},
 		role: {
 			type: String,
-			enum: ['user', 'admin'],
+			enum: ['user', 'admin', 'reseller'],
 			required: true,
 			default: 'user',
 		},
@@ -73,11 +74,11 @@ const usersSchema = new mongoose.Schema(
 		password: {
 			type: String,
 			required: [true, 'this filed is required'],
-			minlength: [8, 'password cannot less than 8 characters'],
+			minlength: [6, 'password cannot less than 6 characters'],
 		},
 		gender: {
 			type: String,
-			enum: ['Male', 'Female', 'Non-binary'],
+			enum: ['Male', 'Female', 'Other'],
 			required: [true, 'this field is required'],
 		},
 		wallet: {
@@ -143,6 +144,10 @@ const usersSchema = new mongoose.Schema(
 		unique_id: {
 			type: String,
 		},
+		isActive: {
+			type: Boolean,
+			default: true,
+		},
 	},
 	{ timestamps: true }
 );
@@ -166,7 +171,6 @@ const agencySchema = new mongoose.Schema(
 		total_balance: {
 			expire_date: {
 				type: Date,
-				default: Date.now(),
 			},
 			current_value: {
 				type: Number,
@@ -177,7 +181,18 @@ const agencySchema = new mongoose.Schema(
 				default: 0,
 			},
 		},
+		wallet: {
+			golds: {
+				type: Number,
+				default: 0,
+			},
+			beans: {
+				type: Number,
+				default: 0,
+			},
+		},
 	},
+
 	{ timestamps: true }
 );
 
@@ -191,6 +206,17 @@ usersSchema.pre('save', async function (next) {
 	this.password = await bcryptjs.hash(this.password, salt);
 	next();
 });
+
+agencySchema.pre('save', async function (next) {
+	this.total_balance.expire_date = new Date().setDate(
+		new Date().getDate() + 30
+	);
+
+	const settings = await Settings.findOne({}, { agency: 1 });
+	this.total_balance.target_value = settings.agency.agencyTarget;
+	next();
+});
+
 const User = mongoose.model('User', usersSchema);
 const Agency = mongoose.model('Agency', agencySchema);
 module.exports = { User, Agency };
