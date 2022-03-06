@@ -35,5 +35,8 @@ router
 router
 	.route('/awardAgencyMembers/:agencyId')
 	.put(auth, AgencyController.awardAgencyMembers);
+router
+	.route('/addMemberToAgency/:agencyId')
+	.put(AgencyController.addMemberToAgency);
 
 module.exports = router;

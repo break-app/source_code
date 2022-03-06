@@ -13,8 +13,8 @@ let agencies = JSON.parse(
 );
 const importData = async () => {
 	try {
-		// await User.create(users);
-		await Agency.create(agencies);
+		await User.create(users);
+		// await Agency.create(agencies);
 		console.log('Data Imported ...');
 		process.exit();
 	} catch (error) {

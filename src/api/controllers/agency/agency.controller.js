@@ -39,7 +39,17 @@ class AgencyController {
 			next(error);
 		}
 	}
-
+	static async addMemberToAgency(req, res, next) {
+		try {
+			const result = await AgencyDAO.addMemberToAgencyByAgencyAdmin(
+				req.params.agencyId,
+				req.body.userId
+			);
+			res.send(result);
+		} catch (error) {
+			next(error);
+		}
+	}
 	static async approveAgencyJoinReqs(req, res, next) {
 		try {
 			const result = await AgencyDAO.approveAgencyJoinReqs(
@@ -68,6 +78,7 @@ class AgencyController {
 			const result = await AgencyDAO.sendGiftFromUserToAgencyMember({
 				userId: req.user.id,
 				memberId: req.body.memberId,
+				agencyId: req.body.agencyId,
 				giftId: req.body.giftId,
 				giftQty: req.body.giftQty,
 			});

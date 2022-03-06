@@ -2,30 +2,6 @@ const bcryptjs = require('bcryptjs');
 const mongoose = require('mongoose');
 const Settings = require('./settings.schema');
 
-const givingSchema = new mongoose.Schema(
-	{
-		giver: {
-			type: mongoose.Schema.Types.String,
-			required: true,
-		},
-		receiver: {
-			type: mongoose.Schema.Types.String,
-			required: true,
-		},
-		quantity: {
-			type: Number,
-			required: true,
-		},
-		scope: {
-			type: String,
-			required: true,
-		},
-	},
-	{
-		_id: false,
-		timestamps: true,
-	}
-);
 const usersSchema = new mongoose.Schema(
 	{
 		_id: {
@@ -117,8 +93,8 @@ const usersSchema = new mongoose.Schema(
 				default: 0,
 			},
 		},
+
 		followings: [{ type: mongoose.Schema.Types.String, ref: 'User' }],
-		gives: [givingSchema],
 		visits: [
 			{
 				type: mongoose.Schema.Types.String,
@@ -192,7 +168,6 @@ const agencySchema = new mongoose.Schema(
 			},
 		},
 	},
-
 	{ timestamps: true }
 );
 

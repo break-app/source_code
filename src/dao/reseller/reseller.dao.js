@@ -1,9 +1,58 @@
+const { checkUpdated } = require('../../api/helpers/checkUpdated');
+const { Transfers } = require('../../schemas/transfers.schema');
 const { User } = require('../../schemas/users.schema');
+
+class ResellerHelper {
+	static async RetrieveToReseller({ resellerId, qty, clientId }) {
+		// let msg =
+		// 	'Error occured when retrieve your gift, please contact support';
+		let reseller, client;
+		if (resellerId) {
+			reseller = await User.updateOne(
+				{
+					_id: resellerId,
+					role: 'reseller',
+				},
+				{
+					$inc: {
+						'wallet.golds': qty,
+					},
+				}
+			);
+			if (!(await checkUpdated(reseller))) {
+				throw new Error(
+					'error occured while retrieving your golds, please contact support'
+				);
+			}
+		}
+		if (clientId) {
+			client = await User.updateOne(
+				{
+					_id: clientId,
+				},
+				{
+					$inc: {
+						'wallet.golds': -qty,
+					},
+				}
+			);
+			if (!(await checkUpdated(client))) {
+				throw new Error(
+					'error occured while retrieving client golds, please contact support'
+				);
+			}
+		}
+
+		throw new Error('Problem occured while sending your gift');
+	}
+}
 class ResellerDAO {
-	static sendToClient(qty, clientId) {
+	static sendToClient(obj) {
+		let { clientId, resellerId, qty } = obj;
 		return new Promise(async (resolve, reject) => {
 			try {
-				const updateClientWallet = User.updateOne(
+				let updateResellerWallet, updateClientWallet;
+				updateClientWallet = User.updateOne(
 					{ _id: clientId },
 					{
 						$inc: {
@@ -11,14 +60,58 @@ class ResellerDAO {
 						},
 					}
 				);
+
+				updateResellerWallet = User.updateOne(
+					{
+						_id: resellerId,
+						role: 'reseller',
+						'wallet.golds': { $gte: qty },
+					},
+					{
+						$inc: {
+							'wallet.golds': -qty,
+						},
+					}
+				);
+
+				const [updateResellerWalletResult, updateClientWalletResult] =
+					await Promise.all([
+						updateResellerWallet,
+						updateClientWallet,
+					]);
+
 				if (
-					!updateClientWallet.matchedCount ||
-					!updateClientWallet.modifiedCount
+					!(await checkUpdated(updateResellerWalletResult)) &&
+					(await checkUpdated(updateClientWalletResult))
+				) {
+					console.log('reseller not updated');
+					reject(
+						await ResellerHelper.RetrieveToReseller({
+							resellerId: null,
+							clientId,
+							qty,
+						})
+					);
+				} else if (
+					(await checkUpdated(updateResellerWalletResult)) &&
+					!(await checkUpdated(updateClientWalletResult))
 				) {
 					reject(
-						new Error('someting go wrong, please try again later.')
+						await ResellerHelper.RetrieveToReseller({
+							resellerId,
+							qty,
+							clientId: null,
+						})
 					);
 				}
+				await Transfers.create({
+					from: resellerId,
+					to: clientId,
+					quantity: qty,
+				});
+				resolve({
+					success: true,
+				});
 			} catch (error) {
 				reject(error);
 			}
