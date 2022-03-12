@@ -1,5 +1,6 @@
 const bcryptjs = require('bcryptjs');
 const mongoose = require('mongoose');
+const idGenerator = require('../api/helpers/idGenerator');
 const Settings = require('./settings.schema');
 
 const usersSchema = new mongoose.Schema(

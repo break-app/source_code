@@ -6,7 +6,7 @@ class ResellerStatisticsDAO {
 			try {
 				console.log(resellerId);
 				const stats = await Transfers.aggregate([
-					{ $match: { from: resellerId } },
+					{ $match: { from: resellerId, as: 'reseller' } },
 					{
 						$project: {
 							to: 1,
@@ -20,6 +20,9 @@ class ResellerStatisticsDAO {
 						},
 					},
 				]);
+				if (!stats.length) {
+					reject(new Error('your request not complete'));
+				}
 				resolve(stats);
 			} catch (error) {
 				reject(error);

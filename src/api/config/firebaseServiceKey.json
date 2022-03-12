@@ -1,0 +1,19 @@
+{
+	"type": "service_account",
+	"project_id": "break-app-b4d39",
+	"private_key_id": "af260f661adc310b53cda7e6084ea8f2f9add994",
+	"private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDqNEqvXElcHp1h\nw/J4zGGH1yR+NJA8cOzB0T3xUFd0+7KaktQQ2eSnbXgEv0gPLmgxXzaLZfIdBvf3\nUkuYJI0Hro5M+3FyrOnCG4LvDMc0eMMYGlvNsDs6PjJBg/YlecRONeCRpN/poDIN\nTEKeNdujsAfC6uHMTRlxdSAj+3cZnhjKKePcdJvBStVqmDowZpEF693AaUu1cSTn\nr6jvR42xqMk29afSB/3ZyriL7BblIVmcyYfc8TgjbUBvECSfk3xHf17pCXTl/DDt\nCQPULOTtbyX6V6/paBXG+D8+cNmDvyFDWLL0M9NsAmlQKFBC9DOoZ+3wlV1j42kL\n/FSwrRF9AgMBAAECggEACCOQEt8Ep6BivMKH+x2zJ/rYiFBAUPFlsOiaG/g8SdLz\nZn7CwuEnmo/p01RoZyqoMUsLRLXiv5J97IjeGqfuhL1SsactTpxmtTmqh68sfwzR\nTtWfqhq9PC1sJq200KGWKleh+b2+kEpiYubrC794ZgxYgLQT67skLrawyr9S6L9u\nOn3Kd/eWn+B/tI9sEOiM/x/yqh1mWp9+psSUEcuf2sTpZOlPErCg63s+um79qKKw\ns4EApANxTRJwChPwxS0Qpllby58sJ28NpGnB7izsyILJEtRS6jsPtf7m9y8vMKak\nuFMDH5VuaAkYkxyhaNU/VAVIjuiFstIKwoGnBJQVawKBgQD926YobngAyOanDnNI\nJh6S5B5cf9SpNOHxhZm/DsoHHOeK/iQn9AbMEypn6Mtt5RcyYQ1fKTjFUXE8Fw1k\nkHZlwr5aXs9B8g6aP8hrsPEmLc37UaE+C3+wUMpHYHmgA2r5oH2yQU8qwAFYQEc7\n2DNgTd9Pj5YbzeA6N9ZFhWCPPwKBgQDsLjByADfGlj+yXyo22bWnR77NvHFJiCnk\n1udXJdJfs4YLREK/i08T+fnu/osnDAcUm9FGUZUeSnRjmrmJP78xrHzie9fe6z/q\neknUOZ43MlR/ZhGTsbxXLg9JS0L/voG/x03xEFnXUsFSO6My8FPjV1FOm1Ng6H1p\nx3T2zsdsQwKBgQDuENLeD9sSQVWtTOvnuXfqoWunq2mv1Rwe9/+bIS9tRDoQKw2V\nOlA1ibO3BqXgRXtfj4yOtYW75gifJa81pBSkkeEZttf/LBVtqms2MxWzjDkjewYP\nvZDdtKY+Ecd9vDbSKyQ1yvGHUdDxBjbHdJWZtu25GxrWsFebwUl8oPxQ2QKBgQC9\nScOgCpapPZAteGIP9erF+BVvNKGjKlNRSf+9c92ov+wlqX7Jn3AwdX+f0ThbgiNG\nnB9c+VPHJCsmDUK4QnQM7s5kgpcf3XGrjnkPc2JfoKHiPT7HHYLyaELuHjjDWb8J\nokXQd6dZkMTKEGwbDkxdf4T1uD1aBNtG5QnUKSPhmwKBgDrgo7On2KegmaIhJwF7\n6Pq/ONLG3tysO1Bw3xRMMaieuOwPG11fimIBua/qRHorRgmEIeM8jC+MFK3RfzRt\ny/1bDGKmSeIfBXqen6BFn+2GFOpnT5YsK5axMplI0qOAaOpOdHDmx9DpJwzzBc9w\nqgrE3eFjLOyv1Qmrfh0V5bZ1\n-----END PRIVATE KEY-----\n",
+	"client_email": "firebase-adminsdk-lrghn@break-app-b4d39.iam.gserviceaccount.com",
+	"client_id": "104363840433167376035",
+	"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+	"token_uri": "https://oauth2.googleapis.com/token",
+	"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+	"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-lrghn%40break-app-b4d39.iam.gserviceaccount.com",
+	"apiKey": "AIzaSyCw79AQDGkl8lJ3CBQqDh7L8slq1Zreirs",
+	"authDomain": "break-app-b4d39.firebaseapp.com",
+	"projectId": "break-app-b4d39",
+	"storageBucket": "break-app-b4d39.appspot.com",
+	"messagingSenderId": "323434283681",
+	"appId": "1:323434283681:web:731f49d6c47973f7b926e0",
+	"measurementId": "G-NGTKN7HYVG"
+}

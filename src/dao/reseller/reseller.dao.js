@@ -1,4 +1,5 @@
 const { checkUpdated } = require('../../api/helpers/checkUpdated');
+const Settings = require('../../schemas/settings.schema');
 const { Transfers } = require('../../schemas/transfers.schema');
 const { User } = require('../../schemas/users.schema');
 
@@ -104,10 +105,12 @@ class ResellerDAO {
 						})
 					);
 				}
+				const settings = await Settings.findOne({}, { beans_golds });
 				await Transfers.create({
 					from: resellerId,
 					to: clientId,
-					quantity: qty,
+					quantity: qty * settings.beans_golds,
+					as: 'reseller',
 				});
 				resolve({
 					success: true,

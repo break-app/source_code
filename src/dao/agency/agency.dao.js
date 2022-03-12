@@ -1,6 +1,6 @@
 const { User, Agency } = require('../../schemas/users.schema');
 const mongoose = require('mongoose');
-
+const { Transfers } = require('../../schemas/transfers.schema');
 const idGenerator = require('../../api/helpers/idGenerator');
 const verifyUpdates = require('../../api/helpers/verifyUpdates');
 const { Store } = require('../../schemas/store.schema');
@@ -217,23 +217,23 @@ class AgencyDAO {
 				// find member
 				// increase his total_balance by beans
 				// increase agency total_balance by beans
-				let store_pipeline = {
-					$lookup: {
-						from: 'stores',
-						pipeline: [
-							{ $match: { _id: giftId } },
-							{ $project: { price: 1, _id: 0 } },
-						],
-						as: 'gift_price',
-					},
-				};
-				let settings_pipeline = {
-					$lookup: {
-						from: 'settings',
-						pipeline: [{ $project: { beans_golds: 1, _id: 0 } }],
-						as: 'beans_golds_eq',
-					},
-				};
+				// let store_pipeline = {
+				// 	$lookup: {
+				// 		from: 'stores',
+				// 		pipeline: [
+				// 			{ $match: { _id: giftId } },
+				// 			{ $project: { price: 1, _id: 0 } },
+				// 		],
+				// 		as: 'gift_price',
+				// 	},
+				// };
+				// let settings_pipeline = {
+				// 	$lookup: {
+				// 		from: 'settings',
+				// 		pipeline: [{ $project: { beans_golds: 1, _id: 0 } }],
+				// 		as: 'beans_golds_eq',
+				// 	},
+				// };
 
 				let merge_pipeline = {
 					$merge: {
@@ -242,9 +242,16 @@ class AgencyDAO {
 					},
 				};
 
-				let remove_price_settings_pipeline = {
-					$project: { beans_golds_eq: 0, gift_price: 0 },
-				};
+				// let remove_price_settings_pipeline = {
+				// 	$project: { beans_golds_eq: 0, gift_price: 0 },
+				// };
+				const [beans_golds_eq, gift_price] = await Promise.all([
+					Settings.findOne({}, { beans_golds: 1, _id: 0 }),
+					Store.findOne({ _id: giftId }, { price: 1, _id: 0 }),
+				]);
+				if (!beans_golds_eq || !gift_price) {
+					reject(new Error('your request not complete'));
+				}
 				let user = User.aggregate([
 					{
 						$match: {
@@ -257,10 +264,10 @@ class AgencyDAO {
 							},
 						},
 					},
-					store_pipeline,
-					settings_pipeline,
-					{ $unwind: '$gift_price' },
-					{ $unwind: '$beans_golds_eq' },
+					// store_pipeline,
+					// settings_pipeline,
+					// { $unwind: '$gift_price' },
+					// { $unwind: '$beans_golds_eq' },
 					{
 						$set: {
 							products: {
@@ -294,25 +301,24 @@ class AgencyDAO {
 									{
 										$multiply: [
 											giftQty,
-											'$gift_price.price',
-											'$beans_golds_eq.beans_golds',
+											gift_price.price,
+											beans_golds_eq.beans_golds,
 										],
 									},
 								],
 							},
 						},
 					},
-					remove_price_settings_pipeline,
 					// TODO
 					merge_pipeline,
 				]);
 
 				let agencyMember = User.aggregate([
 					{ $match: { _id: memberId } },
-					store_pipeline,
-					settings_pipeline,
-					{ $unwind: '$gift_price' },
-					{ $unwind: '$beans_golds_eq' },
+					// store_pipeline,
+					// settings_pipeline,
+					// { $unwind: '$gift_price' },
+					// { $unwind: '$beans_golds_eq' },
 					{
 						$set: {
 							'agency.total_balance': {
@@ -321,15 +327,14 @@ class AgencyDAO {
 									{
 										$multiply: [
 											giftQty,
-											'$gift_price.price',
-											'$beans_golds_eq.beans_golds',
+											gift_price.price,
+											beans_golds_eq.beans_golds,
 										],
 									},
 								],
 							},
 						},
 					},
-					remove_price_settings_pipeline,
 					// TODO
 					merge_pipeline,
 				]);
@@ -353,10 +358,10 @@ class AgencyDAO {
 							},
 						},
 					},
-					store_pipeline,
-					settings_pipeline,
-					{ $unwind: '$gift_price' },
-					{ $unwind: '$beans_golds_eq' },
+					// store_pipeline,
+					// settings_pipeline,
+					// { $unwind: '$gift_price' },
+					// { $unwind: '$beans_golds_eq' },
 					{
 						$set: {
 							'total_balance.current_value': {
@@ -365,15 +370,14 @@ class AgencyDAO {
 									{
 										$multiply: [
 											giftQty,
-											'$gift_price.price',
-											'$beans_golds_eq.beans_golds',
+											gift_price.price,
+											beans_golds_eq.beans_golds,
 										],
 									},
 								],
 							},
 						},
 					},
-					remove_price_settings_pipeline,
 					{
 						$merge: {
 							into: { db: 'break_app', coll: 'agencies' },
@@ -382,6 +386,13 @@ class AgencyDAO {
 					},
 				]);
 				await Promise.all([user, agencyMember, agency]);
+
+				await Transfers.create({
+					from: userId,
+					to: memberId,
+					quantity:
+						giftQty * gift_price.price * beans_golds_eq.beans_golds,
+				});
 				resolve({ success: true });
 			} catch (error) {
 				reject(error);
@@ -442,6 +453,7 @@ class AgencyDAO {
 									},
 								],
 							},
+							'total_balance.current_value': 0,
 						},
 					},
 					{
@@ -475,6 +487,7 @@ class AgencyDAO {
 									},
 								],
 							},
+							'agency.total_balance': 0,
 						},
 					},
 					{

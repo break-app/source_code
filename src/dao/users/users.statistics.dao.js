@@ -1,3 +1,4 @@
+const { Transfers } = require('../../schemas/transfers.schema');
 const { User } = require('../../schemas/users.schema');
 
 class TopGivers {
@@ -9,6 +10,8 @@ class TopGivers {
 		period_time.setDate(period_time.getDate() - this.period);
 		let periodFollowing = new Date();
 		periodFollowing.setDate(periodFollowing.getDate() + 1);
+		console.log(period_time);
+		console.log(periodFollowing);
 		return {
 			period_time,
 			periodFollowing,
@@ -19,48 +22,53 @@ class TopGivers {
 		return [
 			{
 				$match: {
-					'gives.createdAt': { $gt: this.periodCalc().period_time },
+					$expr: {
+						$or: [{ as: 'personal' }, { as: 'agency' }],
+					},
+					$expr: {
+						$and: [
+							{
+								$gt: [
+									'$createdAt',
+									this.periodCalc().period_time,
+								],
+							},
+							{
+								$lt: [
+									'$createdAt',
+									this.periodCalc().periodFollowing,
+								],
+							},
+						],
+					},
 				},
 			},
-			{ $unwind: '$gives' },
 
-			{ $project: { gives: 1 } },
 			{
 				$group: {
-					_id: '$gives.giver',
-					count: {
-						$sum: {
-							$cond: [
-								{
-									$and: [
-										{
-											$gt: [
-												'$gives.createdAt',
-												this.periodCalc().period_time,
-											],
-										},
-										{
-											$lt: [
-												'$gives.createdAt',
-												this.periodCalc()
-													.periodFollowing,
-											],
-										},
-									],
-								},
-								'$gives.quantity',
-								0,
-							],
-						},
-					},
+					_id: '$from',
+					count: { $sum: '$quantity' },
 				},
 			},
 
 			{
 				$lookup: {
 					from: 'users',
-					foreignField: '_id',
-					localField: '_id',
+					let: { userId: '$_id' },
+					pipeline: [
+						{ $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+						{
+							$project: {
+								name: {
+									$concat: ['$first_name', ' ', '$last_name'],
+								},
+								email: 1,
+								avatar: 1,
+								age: 1,
+								country: 1,
+							},
+						},
+					],
 					as: 'user',
 				},
 			},
@@ -68,17 +76,7 @@ class TopGivers {
 			{
 				$project: {
 					totalGives: '$count',
-					user: {
-						name: {
-							$concat: [
-								'$user.name.first',
-								' ',
-								'$user.name.last',
-							],
-						},
-						avatar: '$user.avatar',
-						email: '$user.email',
-					},
+					user: 1,
 				},
 			},
 			{ $sort: { totalGives: -1 } },
@@ -87,7 +85,7 @@ class TopGivers {
 
 	async daily() {
 		try {
-			const dailyResult = await User.aggregate(
+			const dailyResult = await Transfers.aggregate(
 				this.filterBydatePipeline()
 			);
 			return dailyResult;
@@ -98,7 +96,7 @@ class TopGivers {
 
 	async weekly() {
 		try {
-			const weeklyResult = await User.aggregate(
+			const weeklyResult = await Transfers.aggregate(
 				this.filterBydatePipeline()
 			);
 			return weeklyResult;
@@ -109,7 +107,7 @@ class TopGivers {
 
 	async monthly() {
 		try {
-			const monthlyResult = await User.aggregate(
+			const monthlyResult = await Transfers.aggregate(
 				this.filterBydatePipeline()
 			);
 			return monthlyResult;
@@ -124,6 +122,7 @@ class UserStatisticsDAO {
 			try {
 				let result = new TopGivers(1);
 				result = result.daily();
+
 				resolve(result);
 			} catch (error) {
 				reject(error);

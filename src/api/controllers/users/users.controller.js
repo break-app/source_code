@@ -47,6 +47,7 @@ class User {
 class UserController {
 	static async register(req, res, next) {
 		try {
+			return console.log(req.file);
 			let userFromBody = req.body;
 
 			const registerResult = await UserDAO.addUser(userFromBody);

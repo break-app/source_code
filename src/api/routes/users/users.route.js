@@ -6,10 +6,21 @@ const auth = require('../../middlewares/auth.middleware');
 const { catchValidationError } = require('../../middlewares/validationError');
 const cleanCache = require('../../middlewares/cleanCache');
 const router = Router();
+const multer = require('multer');
+const { uploadImage } = require('../../utils/firebase');
 
-router
-	.route('/register')
-	.post(validate('addUser'), catchValidationError, UserController.register);
+const Multer = multer({
+	storage: multer.memoryStorage(),
+	limits: 1024 * 1024,
+});
+
+router.route('/register').post(
+	// validate('addUser'),
+	Multer.single('avatar'),
+	uploadImage,
+	catchValidationError,
+	UserController.register
+);
 router
 	.route('/login')
 	.post(validate('loginUser'), catchValidationError, UserController.login);

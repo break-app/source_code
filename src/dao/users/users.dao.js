@@ -6,6 +6,7 @@ const Settings = require('../../schemas/settings.schema');
 const idGenerator = require('../../api/helpers/idGenerator');
 const checkDataExist = require('../../api/helpers/notFoundData');
 const verifyUpdates = require('../../api/helpers/verifyUpdates');
+const { Transfers } = require('../../schemas/transfers.schema');
 
 class UserDAO {
 	/**-----------------------
@@ -72,7 +73,7 @@ class UserDAO {
 							_id: 0,
 							personal_info: {
 								name: {
-									$concat: ['$name.first', ' ', '$name.last'],
+									$concat: ['$first_name', ' ', '$last_name'],
 								},
 								avatar: '$avatr',
 								gender: '$gender',
@@ -86,7 +87,9 @@ class UserDAO {
 						},
 					},
 				]);
-
+				if (!user.length) {
+					reject(new Error('your request not completed'));
+				}
 				resolve(user);
 			} catch (error) {
 				reject(error);
@@ -102,7 +105,6 @@ class UserDAO {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const { visitor, userId } = data;
-				// const user = await User.findOne({ email });
 
 				let user = await User.updateOne(
 					{ _id: visitor, visits: { $nin: [userId] } },
@@ -134,7 +136,7 @@ class UserDAO {
 							_id: 0,
 							personal_info: {
 								name: {
-									$concat: ['$name.first', ' ', '$name.last'],
+									$concat: ['$first_name', ' ', '$last_name'],
 								},
 								avatar: '$avatr',
 								gender: '$gender',
@@ -147,9 +149,10 @@ class UserDAO {
 							level: 1,
 						},
 					},
-				]).cache({
-					key: `user_profile=${userId}`,
-				});
+				]);
+				if (!user.length) {
+					reject(new Error('your request not completed'));
+				}
 				resolve(user);
 			} catch (error) {
 				reject(error);
@@ -351,35 +354,13 @@ class UserDAO {
 						followings: { $in: [user_id] },
 					},
 					{ name: 1, avatar: 1 }
-				).cache({
-					key: `user_followers=${user_id}`,
-				});
+				);
 				resolve(getFollowersResult);
 			} catch (error) {
 				reject(error);
 			}
 		});
 	}
-
-	// /**
-	//  *  add user_id to `followings` field in his document
-	//  *  @param {string} user_id // the id of visitor user
-	//  *  @param {string} user_to_visit // the id of user you want to visit
-	//  **/
-	// static async addVisitor(user_id, user_to_visit) {
-	// 	return new Promise(async (resolve, reject) => {
-	// 		try {
-	// 			await User.updateOne(
-	// 				{ _id: user_id, visits: { $nin: [user_to_visit] } },
-	// 				{ $push: { visits: user_to_visit } }
-	// 			);
-
-	// 			resolve({ success: true });
-	// 		} catch (error) {
-	// 			reject(error);
-	// 		}
-	// 	});
-	// }
 
 	/**
 	 *  buy product.. either (push) new product or update it
@@ -526,15 +507,6 @@ class UserDAO {
 						$inc: {
 							'products.$.quantity': -gift_qty,
 						},
-
-						$push: {
-							gives: {
-								giver: sender,
-								receiver: reciever,
-								quantity: gift_qty * gift_value.price,
-								scope: 'global',
-							},
-						},
 					}
 				);
 
@@ -542,7 +514,7 @@ class UserDAO {
 				if (!sendGiftResult.modifiedCount) {
 					reject(
 						new Error(
-							'your product quantity is less than gift quantity'
+							'your product quantity is less than gift quantity or you do not have this product'
 						)
 					);
 					return;
@@ -556,7 +528,8 @@ class UserDAO {
 						{
 							$inc: {
 								'wallet.beans':
-									(gift_value.price / settings.beans_golds) *
+									gift_value.price *
+									settings.beans_golds *
 									gift_qty,
 							},
 						}
@@ -569,10 +542,16 @@ class UserDAO {
 								'error occured while sending gift, please do not worry about your gift we will resend it later.'
 							)
 						);
-
-						return;
 					}
 				}
+
+				await Transfers.create({
+					from: sender,
+					to: reciever,
+					as: 'personal',
+					quantity:
+						gift_qty * gift_value.price * settings.beans_golds,
+				});
 				resolve(sendGiftResult);
 			} catch (error) {
 				reject(error);
