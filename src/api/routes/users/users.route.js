@@ -14,13 +14,14 @@ const Multer = multer({
 	limits: 1024 * 1024,
 });
 
-router.route('/register').post(
-	// validate('addUser'),
-	Multer.single('avatar'),
-	uploadImage,
-	catchValidationError,
-	UserController.register
-);
+router
+	.route('/uploadAvatar')
+	.post(Multer.single('avatar'), uploadImage, (req, res) => {
+		res.send({ avatarUrl: req.file.firebaseUrl });
+	});
+router
+	.route('/register')
+	.post(validate('addUser'), catchValidationError, UserController.register);
 router
 	.route('/login')
 	.post(validate('loginUser'), catchValidationError, UserController.login);
